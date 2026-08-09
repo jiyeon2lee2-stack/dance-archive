@@ -47,7 +47,12 @@ function LoginPage() {
     setError(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        // 카카오: 일반 앱은 이메일 권한이 없어 KOE205가 발생하므로
+        // 권한이 있는 동의항목(닉네임, 프로필 사진)만 명시적으로 요청
+        ...(provider === "kakao" ? { scopes: "profile_nickname profile_image" } : {}),
+      },
     });
     if (error) setError(friendlyError(error.message));
   };
