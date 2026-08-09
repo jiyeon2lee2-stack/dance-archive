@@ -1,0 +1,417 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * 현대 무용 아카이브 — Design System
+ * Near-black canvas, neon blue + beige accents, ultra-bold sans. Indie dance crew energy.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 10px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-beige: var(--beige);
+  --color-beige-foreground: var(--beige-foreground);
+  --color-santorini: var(--santorini);
+  --color-naver: var(--naver);
+  --color-kakao: var(--kakao);
+  --color-kakao-foreground: var(--kakao-foreground);
+
+  --font-sans:
+    "Pretendard Variable", Pretendard, "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    "Pretendard Variable", Pretendard, "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-serif:
+    "Pretendard Variable", Pretendard, "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --radius: 2px;
+
+  /* warm beige canvas */
+  --background: oklch(0.93 0.022 85);
+  --surface: oklch(0.9 0.028 85);
+  --surface-2: oklch(0.86 0.035 85);
+  --foreground: oklch(0.19 0.006 60);
+  --muted: oklch(0.88 0.03 85);
+  --muted-foreground: oklch(0.45 0.012 70);
+
+  --card: oklch(0.95 0.018 85);
+  --card-foreground: oklch(0.19 0.006 60);
+  --popover: oklch(0.95 0.018 85);
+  --popover-foreground: oklch(0.19 0.006 60);
+
+  /* santorini blue #0057B8 */
+  --primary: oklch(0.47 0.17 258);
+  --primary-foreground: oklch(0.97 0.015 85);
+  --accent: oklch(0.47 0.17 258);
+  --accent-foreground: oklch(0.97 0.015 85);
+
+  /* inverted ink block */
+  --beige: oklch(0.19 0.006 60);
+  --beige-foreground: oklch(0.95 0.018 85);
+
+  --secondary: oklch(0.86 0.035 85);
+  --secondary-foreground: oklch(0.19 0.006 60);
+
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.97 0.015 85);
+
+  --border: oklch(0.19 0.006 60 / 18%);
+  --input: oklch(0.19 0.006 60 / 24%);
+  --ring: oklch(0.47 0.17 258);
+
+  /* deep aegean "santorini" blue */
+  --santorini: #2e64c8;
+
+  --naver: #03c75a;
+  --kakao: #fee500;
+  --kakao-foreground: #191600;
+
+  --shadow-editorial: 0 30px 70px -40px oklch(0.19 0.006 60 / 35%);
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    position: relative;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* grain / noise texture */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+/* ---------- Type scale ---------- */
+@utility type-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(3rem, 13.5vw, 12rem);
+  line-height: 0.84;
+  letter-spacing: -0.055em;
+  text-transform: none;
+}
+
+@utility type-h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(2.5rem, 7.5vw, 5.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+}
+
+@utility type-h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.9rem, 5vw, 3.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+@utility type-h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+@utility type-body {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--muted-foreground);
+}
+
+@utility type-caption {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+/* huge outlined english word used as a graphic element */
+@utility stroke-word {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--santorini) 70%, transparent);
+  user-select: none;
+}
+
+@utility stroke-word-accent {
+  -webkit-text-stroke: 1.5px color-mix(in oklab, var(--santorini) 85%, transparent);
+}
+
+/* ---------- Components ---------- */
+@utility mono {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+@utility btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.6rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  border-radius: var(--radius);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  cursor: pointer;
+  &:active {
+    transform: translateY(1px);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+}
+
+@utility btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  &:hover {
+    background: var(--foreground);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--primary);
+  }
+}
+
+@utility btn-secondary {
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  background: transparent;
+  &:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+@utility btn-ghost {
+  color: var(--muted-foreground);
+  background: transparent;
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+/* marker-pen highlight link */
+@utility link-marker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: var(--foreground);
+  isolation: isolate;
+  transition: color 0.2s ease;
+  &::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: -0.15em;
+    right: -0.15em;
+    bottom: 0.02em;
+    height: 0.42em;
+    background: var(--primary);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  &:hover::before {
+    transform: scaleX(1);
+  }
+  &:hover {
+    color: var(--primary-foreground);
+  }
+}
+
+@utility link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--primary);
+  transition: gap 0.25s ease;
+  &:hover {
+    gap: 1.1rem;
+  }
+}
+
+@utility field {
+  width: 100%;
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+  &::placeholder {
+    color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+  }
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 3px 3px 0 color-mix(in oklab, var(--primary) 45%, transparent);
+  }
+}
+
+@utility rule {
+  height: 1px;
+  width: 100%;
+  background: var(--border);
+}
+
+@utility grain-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+/* sticker badge — small rounded tag with attitude */
+@utility sticker {
+  font-family: var(--font-mono);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  padding: 0.2rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--foreground);
+  transform: rotate(-3deg);
+  transition:
+    transform 0.25s ease,
+    background-color 0.25s ease;
+}
+
+@utility sticker-accent {
+  background: var(--beige);
+  border-color: var(--beige);
+  color: var(--beige-foreground);
+  transform: rotate(2.5deg);
+}
+
+/* inverted beige section */
+@utility invert-block {
+  background: var(--beige);
+  color: var(--beige-foreground);
+}
+
+/* ---------- Motion ---------- */
+@utility reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@utility reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

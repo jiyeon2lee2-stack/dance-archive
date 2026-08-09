@@ -1,0 +1,215 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { SectionHeader } from "@/components/site/SectionHeader";
+import { WorkCard } from "@/components/site/WorkCard";
+import { WireGlobe } from "@/components/site/WireGlobe";
+import { Reveal } from "@/components/site/Reveal";
+import { works, type Work } from "@/lib/archive-data";
+import heroImage from "@/assets/hero.jpg";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "현대무용 아카이브 | 세계의 현대 무용 작품 아카이브" },
+      {
+        name: "description",
+        content:
+          "세계의 위대한 현대 무용 작품과 안무가를 아카이브합니다. 작품 분석, 한국 입시 요강, 해외 유학 정보를 한 곳에서 만나보세요.",
+      },
+      { property: "og:title", content: "현대무용 아카이브" },
+      {
+        property: "og:description",
+        content: "세계의 위대한 현대 무용 작품들을 만나세요. 작품 분석과 입시·유학 정보 아카이브.",
+      },
+    ],
+  }),
+  component: Home,
+});
+
+const features = [
+  {
+    title: "깊이 있는 작품 분석",
+    body: "세계적 안무가의 대표작을 구조와 맥락으로 읽어냅니다. 시대적 배경부터 동작 어휘까지 한 편의 에세이로 정리합니다.",
+  },
+  {
+    title: "안무가 프로필",
+    body: "머스 커닝햄부터 피나 바우쉬까지, 현대 무용의 언어를 바꾼 안무가들의 작업 세계를 살펴봅니다.",
+  },
+  {
+    title: "진로 콘텐츠",
+    body: "국내 입시 요강과 해외 유학 정보를 정리해, 무대를 향한 다음 걸음을 구체적으로 설계할 수 있게 돕습니다.",
+  },
+];
+
+function Home() {
+  const featured = works.slice(0, 3) as [Work, Work, Work];
+
+  return (
+    <div className="min-h-screen">
+      <SiteHeader />
+
+      {/* HERO */}
+      <section className="relative isolate overflow-hidden">
+        <img
+          src={heroImage}
+          alt="어두운 극장 무대 위 한 명의 무용수"
+          width={1920}
+          height={1080}
+          className="absolute inset-0 h-full w-full object-cover opacity-25 grayscale"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-background/60 via-background/75 to-background" />
+        <span
+          aria-hidden
+          className="stroke-word stroke-word-accent pointer-events-none absolute inset-x-0 top-1/3 text-center text-[6rem] whitespace-nowrap opacity-40 md:text-[16rem]"
+        >
+          MOVEMENT
+        </span>
+
+        <div className="relative mx-auto max-w-[1400px] px-6 py-24 md:px-10 md:py-40">
+          <Reveal>
+            <p className="eyebrow">Contemporary Dance Archive ✦ SINCE 2026</p>
+            <h1 className="type-display mt-6">
+              현대무용
+              <br />
+              <span className="text-primary">아카이브</span>
+            </h1>
+            <p className="type-body mt-8 max-w-xl text-base">
+              세계의 위대한 현대 무용 작품들을 만나세요. 시대를 바꾼 안무와 그 안에 담긴 사유를,
+              깊이 있는 분석과 함께 아카이브합니다.
+            </p>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <Link to="/works" className="btn-base btn-primary">
+                작품 탐색하기 <span aria-hidden>→</span>
+              </Link>
+              <Link to="/login" className="btn-base btn-secondary">
+                로그인하고 분석 보기 <span aria-hidden>↗</span>
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+
+      {/* 추천 작품 */}
+      <section className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
+        <Reveal>
+          <SectionHeader
+            eyebrow="Featured"
+            title="추천 작품"
+            subtitle="반드시 마주해야 할 걸작들"
+            strokeWord="Featured"
+          />
+        </Reveal>
+
+        <div className="mt-16 grid gap-12 md:grid-cols-12">
+          <Reveal className="md:col-span-7" delay={60}>
+            <WorkCard work={featured[0]} ratio="aspect-[4/5]" />
+          </Reveal>
+          <div className="flex flex-col gap-12 md:col-span-5 md:pt-24">
+            {featured.slice(1).map((w, i) => (
+              <Reveal key={w.slug} delay={120 + i * 90}>
+                <WorkCard work={w} ratio="aspect-[16/10]" />
+              </Reveal>
+            ))}
+          </div>
+        </div>
+
+        <Reveal className="mt-16">
+          <Link to="/works" className="btn-base btn-secondary">
+            모든 작품 보기 <span aria-hidden>→</span>
+          </Link>
+        </Reveal>
+      </section>
+
+      {/* 무엇을 경험할 수 있나요? — inverted beige block */}
+      <section className="invert-block relative isolate overflow-hidden">
+        <WireGlobe className="pointer-events-none absolute top-1/2 -right-[18%] -z-10 h-[130%] w-auto -translate-y-1/2 opacity-30 md:-right-[10%] md:opacity-40" />
+        <div className="relative mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
+          <Reveal>
+            <p className="text-xs font-extrabold tracking-[0.24em] uppercase">Experience</p>
+            <h2 className="type-h2 mt-3">무엇을 경험할 수 있나요?</h2>
+          </Reveal>
+          <div className="mt-12 grid gap-0 md:grid-cols-3">
+            {features.map((f, i) => (
+              <Reveal key={f.title} delay={i * 90}>
+                <div className="border-t border-primary-foreground/25 py-10 md:mr-10 md:py-12">
+                  <p className="text-5xl font-black tracking-tighter">
+                    {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h3 className="type-h3 mt-5">{f.title}</h3>
+                  <p className="mt-4 text-sm leading-relaxed opacity-80">{f.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+      {/* 입시 & 유학 정보 */}
+      <section className="border-t border-border">
+        <div className="mx-auto max-w-[1400px] px-6 py-20 md:px-10 md:py-28">
+          <Reveal>
+            <SectionHeader eyebrow="Pathways" title="입시 & 유학 정보" strokeWord="Pathways" />
+          </Reveal>
+          <div className="mt-14 grid gap-8 md:grid-cols-2">
+            <Reveal delay={60}>
+              <div className="grain-panel flex h-full flex-col justify-between p-8 transition-all duration-200 hover:-translate-y-1 hover:border-primary md:p-12">
+                <div>
+                  <p className="eyebrow">Korea</p>
+                  <h3 className="type-h2 mt-4">한국 입시 요강</h3>
+                  <p className="type-body mt-4 text-sm">
+                    국내 주요 대학 무용과의 전형 방식과 실기 과제, 준비 일정을 정리했습니다.
+                  </p>
+                </div>
+                <Link to="/admissions" className="link-marker mt-10 text-sm">
+                  입시 정보 보기 <span aria-hidden>→</span>
+                </Link>
+              </div>
+            </Reveal>
+            <Reveal delay={140}>
+              <div className="grain-panel flex h-full flex-col justify-between p-8 transition-all duration-200 hover:-translate-y-1 hover:border-primary md:p-12">
+                <div>
+                  <p className="eyebrow">Overseas</p>
+                  <h3 className="type-h2 mt-4">해외 유학 정보</h3>
+                  <p className="type-body mt-4 text-sm">
+                    유럽과 북미의 컨템포러리 댄스 학교, 오디션 일정과 지원 요건을 안내합니다.
+                  </p>
+                </div>
+                <Link to="/study-abroad" className="link-marker mt-10 text-sm">
+                  유학 정보 보기 <span aria-hidden>→</span>
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="border-t border-border">
+        <div className="relative mx-auto max-w-[1400px] overflow-hidden px-6 py-24 text-center md:px-10 md:py-32">
+          <span
+            aria-hidden
+            className="stroke-word pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-[4rem] whitespace-nowrap opacity-30 md:text-[12rem]"
+          >
+            JOIN NOW
+          </span>
+          <Reveal>
+            <h2 className="type-h1 relative">지금 시작하세요</h2>
+            <p className="type-body relative mx-auto mt-6 max-w-lg">
+              무료로 가입하고 모든 작품 분석과 진로 콘텐츠를 열람하세요
+            </p>
+            <div className="relative mt-10">
+              <Link to="/login" className="btn-base btn-primary">
+                무료로 시작하기 <span aria-hidden>→</span>
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <SiteFooter />
+    </div>
+  );
+}
