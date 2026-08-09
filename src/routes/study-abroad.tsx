@@ -5,9 +5,10 @@ import { PageHeader } from "@/components/site/PageHeader";
 import { EmptyState } from "@/components/site/EmptyState";
 import { InfoCard } from "@/components/site/InfoCard";
 import { Reveal } from "@/components/site/Reveal";
-import { studyAbroadItems } from "@/lib/archive-data";
+import { fetchInfoItems } from "@/lib/info-source";
 
 export const Route = createFileRoute("/study-abroad")({
+  loader: async () => ({ items: await fetchInfoItems("abroad") }),
   head: () => ({
     meta: [
       { title: "해외 유학 정보 | 현대 무용 아카이브" },
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/study-abroad")({
 });
 
 function StudyAbroad() {
+  const { items: studyAbroadItems } = Route.useLoaderData();
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />

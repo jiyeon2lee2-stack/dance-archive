@@ -5,9 +5,10 @@ import { PageHeader } from "@/components/site/PageHeader";
 import { EmptyState } from "@/components/site/EmptyState";
 import { InfoCard } from "@/components/site/InfoCard";
 import { Reveal } from "@/components/site/Reveal";
-import { koreaAdmissionItems } from "@/lib/archive-data";
+import { fetchInfoItems } from "@/lib/info-source";
 
 export const Route = createFileRoute("/admissions")({
+  loader: async () => ({ items: await fetchInfoItems("korea") }),
   head: () => ({
     meta: [
       { title: "한국 입시 요강 | 현대 무용 아카이브" },
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/admissions")({
 });
 
 function Admissions() {
+  const { items: koreaAdmissionItems } = Route.useLoaderData();
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
