@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { useAuth, displayName } from "@/lib/use-auth";
 
 const nav = [
   { to: "/works", label: "작품 탐색" },
@@ -10,6 +11,7 @@ const nav = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
@@ -31,9 +33,22 @@ export function SiteHeader() {
               {n.label}
             </Link>
           ))}
-          <Link to="/login" className="btn-base btn-primary px-5 py-2 text-xs">
-            로그인 <span aria-hidden>→</span>
-          </Link>
+          {user ? (
+            <span className="flex items-center gap-3">
+              <span className="max-w-[9rem] truncate text-xs font-bold">{displayName(user)} 님</span>
+              <button
+                type="button"
+                onClick={() => void signOut()}
+                className="btn-base btn-secondary px-4 py-2 text-xs"
+              >
+                로그아웃
+              </button>
+            </span>
+          ) : (
+            <Link to="/login" className="btn-base btn-primary px-5 py-2 text-xs">
+              로그인 <span aria-hidden>→</span>
+            </Link>
+          )}
         </nav>
 
         <button
@@ -58,13 +73,26 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
-            <Link
-              to="/login"
-              onClick={() => setOpen(false)}
-              className="btn-base btn-primary w-full py-2 text-xs"
-            >
-              로그인 <span aria-hidden>→</span>
-            </Link>
+            {user ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void signOut();
+                  setOpen(false);
+                }}
+                className="btn-base btn-secondary w-full py-2 text-xs"
+              >
+                {displayName(user)} 님 · 로그아웃
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setOpen(false)}
+                className="btn-base btn-primary w-full py-2 text-xs"
+              >
+                로그인 <span aria-hidden>→</span>
+              </Link>
+            )}
           </div>
         </div>
       )}
