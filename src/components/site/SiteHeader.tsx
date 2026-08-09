@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useAuth, displayName } from "@/lib/use-auth";
+import { useIsAdmin } from "@/lib/use-admin";
 
 const nav = [
   { to: "/works", label: "작품 탐색" },
@@ -12,6 +13,7 @@ const nav = [
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin(user);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
@@ -33,6 +35,11 @@ export function SiteHeader() {
               {n.label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link to="/admin" className="link-marker text-sm" activeProps={{ className: "text-primary" }}>
+              관리자
+            </Link>
+          )}
           {user ? (
             <span className="flex items-center gap-3">
               <span className="max-w-[9rem] truncate text-xs font-bold">{displayName(user)} 님</span>
@@ -73,6 +80,15 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={() => setOpen(false)}
+                className="link-marker self-start text-base font-bold"
+              >
+                관리자
+              </Link>
+            )}
             {user ? (
               <button
                 type="button"
