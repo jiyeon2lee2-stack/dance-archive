@@ -7,9 +7,13 @@ import { PageHeader } from "@/components/site/PageHeader";
 import { WorkCard } from "@/components/site/WorkCard";
 import { EmptyState } from "@/components/site/EmptyState";
 import { Reveal } from "@/components/site/Reveal";
-import { works, countries, years, choreographers } from "@/lib/archive-data";
+import { fetchWorks, buildFilterOptions } from "@/lib/works-source";
 
 export const Route = createFileRoute("/works/")({
+  loader: async () => {
+    const works = await fetchWorks();
+    return { works, options: buildFilterOptions(works) };
+  },
   head: () => ({
     meta: [
       { title: "작품 탐색 | 현대 무용 아카이브" },
@@ -28,6 +32,8 @@ export const Route = createFileRoute("/works/")({
 });
 
 function WorksPage() {
+  const { works, options } = Route.useLoaderData();
+  const { countries, years, choreographers } = options;
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState<string>(countries[0]!);
   const [year, setYear] = useState<string>(years[0]!);

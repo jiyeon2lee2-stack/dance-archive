@@ -4,11 +4,11 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
-import { getWork } from "@/lib/archive-data";
+import { fetchWork } from "@/lib/works-source";
 
 export const Route = createFileRoute("/works/$slug")({
-  loader: ({ params }) => {
-    const work = getWork(params.slug);
+  loader: async ({ params }) => {
+    const work = await fetchWork(params.slug);
     if (!work) throw notFound();
     return { work };
   },

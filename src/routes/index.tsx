@@ -5,10 +5,15 @@ import { SectionHeader } from "@/components/site/SectionHeader";
 import { WorkCard } from "@/components/site/WorkCard";
 import { WireGlobe } from "@/components/site/WireGlobe";
 import { Reveal } from "@/components/site/Reveal";
-import { works, type Work } from "@/lib/archive-data";
+import { type Work } from "@/lib/archive-data";
+import { fetchWorks } from "@/lib/works-source";
 import heroImage from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const works = await fetchWorks();
+    return { featured: works.slice(0, 3) };
+  },
   head: () => ({
     meta: [
       { title: "현대무용 아카이브 | 세계의 현대 무용 작품 아카이브" },
@@ -43,7 +48,7 @@ const features = [
 ];
 
 function Home() {
-  const featured = works.slice(0, 3) as [Work, Work, Work];
+  const { featured } = Route.useLoaderData() as { featured: Work[] };
 
   return (
     <div className="min-h-screen">
@@ -104,7 +109,7 @@ function Home() {
 
         <div className="mt-16 grid gap-12 md:grid-cols-12">
           <Reveal className="md:col-span-7" delay={60}>
-            <WorkCard work={featured[0]} ratio="aspect-[4/5]" />
+            {featured[0] && <WorkCard work={featured[0]} ratio="aspect-[4/5]" />}
           </Reveal>
           <div className="flex flex-col gap-12 md:col-span-5 md:pt-24">
             {featured.slice(1).map((w, i) => (
