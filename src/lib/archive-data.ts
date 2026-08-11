@@ -13,6 +13,8 @@ export type Work = {
   image: string;
   summary: string;
   analysis: string[];
+  /** 유튜브 영상 주소 (선택). 있으면 상세 페이지에 영상이 표시됩니다. */
+  youtube?: string;
 };
 
 export const works: Work[] = [

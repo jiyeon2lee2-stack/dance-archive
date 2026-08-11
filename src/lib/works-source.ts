@@ -16,6 +16,7 @@ type WorkRow = {
   image_url: string | null;
   summary: string;
   analysis: string[] | null;
+  youtube_url: string | null;
 };
 
 // slug → 프로젝트에 내장된 이미지 매핑 (DB의 image_url이 비어있을 때 사용)
@@ -34,6 +35,7 @@ function rowToWork(row: WorkRow): Work {
     image: row.image_url || localImageBySlug[row.slug] || defaultImage,
     summary: row.summary,
     analysis: Array.isArray(row.analysis) ? row.analysis : [],
+    ...(row.youtube_url ? { youtube: row.youtube_url } : {}),
   };
 }
 
@@ -41,7 +43,7 @@ export async function fetchWorks(): Promise<Work[]> {
   try {
     const { data, error } = await supabase
       .from("works")
-      .select("slug,title,choreographer,country,year,image_url,summary,analysis")
+      .select("slug,title,choreographer,country,year,image_url,summary,analysis,youtube_url")
       .order("display_order", { ascending: true })
       .order("year", { ascending: true });
 
@@ -60,7 +62,7 @@ export async function fetchWork(slug: string): Promise<Work | undefined> {
   try {
     const { data, error } = await supabase
       .from("works")
-      .select("slug,title,choreographer,country,year,image_url,summary,analysis")
+      .select("slug,title,choreographer,country,year,image_url,summary,analysis,youtube_url")
       .eq("slug", slug)
       .maybeSingle();
 

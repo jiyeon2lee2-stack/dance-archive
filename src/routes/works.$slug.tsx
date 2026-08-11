@@ -5,6 +5,18 @@ import { PageHeader } from "@/components/site/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { fetchWork } from "@/lib/works-source";
 
+// 유튜브 주소에서 영상 ID(11자리)를 추출합니다.
+// 지원 형식: watch?v=..., youtu.be/..., shorts/..., embed/..., ID만 입력
+function youtubeId(url: string | undefined): string | null {
+  if (!url) return null;
+  const trimmed = url.trim();
+  if (/^[\w-]{11}$/.test(trimmed)) return trimmed;
+  const m = trimmed.match(
+    /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/,
+  );
+  return m?.[1] ?? null;
+}
+
 export const Route = createFileRoute("/works/$slug")({
   loader: async ({ params }) => {
     const work = await fetchWork(params.slug);
@@ -69,6 +81,27 @@ function WorkDetail() {
               </Reveal>
             ))}
           </div>
+
+          {/* 공연 영상 (유튜브 공식 삽입) */}
+          {youtubeId(work.youtube) && (
+            <Reveal>
+              <section className="mt-20">
+                <div className="rule" />
+                <p className="eyebrow mt-10">Video</p>
+                <div className="mt-6 aspect-video w-full overflow-hidden bg-foreground/5">
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${youtubeId(work.youtube)}`}
+                    title={`${work.title} 공연 영상`}
+                    className="h-full w-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
+                <p className="type-caption mt-4 text-[0.6rem]">영상 출처: YouTube</p>
+              </section>
+            </Reveal>
+          )}
 
         </article>
       </main>

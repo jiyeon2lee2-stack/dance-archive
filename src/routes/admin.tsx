@@ -51,6 +51,7 @@ type WorkRow = {
   country: string;
   year: number;
   image_url: string | null;
+  youtube_url: string | null;
   summary: string;
   analysis: string[];
   display_order: number;
@@ -63,6 +64,7 @@ const emptyWork = {
   country: "",
   year: new Date().getFullYear(),
   image_url: "",
+  youtube_url: "",
   summary: "",
   analysisText: "",
   display_order: 100,
@@ -78,7 +80,7 @@ function WorksAdmin() {
   const load = async () => {
     const { data, error } = await supabase
       .from("works")
-      .select("id,slug,title,choreographer,country,year,image_url,summary,analysis,display_order")
+      .select("id,slug,title,choreographer,country,year,image_url,youtube_url,summary,analysis,display_order")
       .order("display_order");
     if (!error && data) setRows(data as WorkRow[]);
   };
@@ -100,6 +102,7 @@ function WorksAdmin() {
       country: r.country,
       year: r.year,
       image_url: r.image_url ?? "",
+      youtube_url: r.youtube_url ?? "",
       summary: r.summary,
       analysisText: (r.analysis ?? []).join("\n\n"),
       display_order: r.display_order,
@@ -122,6 +125,7 @@ function WorksAdmin() {
       country: form.country.trim(),
       year: Number(form.year) || 0,
       image_url: form.image_url.trim() || null,
+      youtube_url: form.youtube_url.trim() || null,
       summary: form.summary.trim(),
       analysis: form.analysisText
         .split(/\n\s*\n/)
@@ -213,6 +217,9 @@ function WorksAdmin() {
           <div className="mt-4 grid gap-4">
             <Field label="이미지 URL" hint="비워두면 기본 이미지 사용. 외부 이미지 주소(https://...)를 붙여넣으세요.">
               <input className={inputCls} value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
+            </Field>
+            <Field label="유튜브 영상 주소" hint="공식 채널 영상만 사용하세요. 주소를 그대로 붙여넣으면 상세 페이지에 영상이 표시됩니다. 비워두면 영상 없이 표시됩니다.">
+              <input className={inputCls} value={form.youtube_url} onChange={(e) => setForm({ ...form, youtube_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
             </Field>
             <Field label="요약" hint="목록 카드에 표시되는 한두 문장">
               <textarea className={inputCls} rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
