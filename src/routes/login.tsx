@@ -26,7 +26,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const benefits = ["작품 분석 콘텐츠 열람", "작품에 댓글 작성", "입시 및 유학 정보 열람"];
+const benefits = ["작품 분석 콘텐츠 열람", "입시 및 유학 정보 열람"];
 
 function friendlyError(message: string): string {
   if (/provider is not enabled|Unsupported provider/i.test(message))
@@ -106,7 +106,7 @@ function LoginPage() {
                     type="button"
                     disabled={loading}
                     onClick={() => void oauth("google")}
-                    className="btn-base w-full border border-border bg-foreground text-background hover:opacity-90"
+                    className="btn-base w-full border border-border bg-white text-foreground hover:opacity-80"
                   >
                     <span aria-hidden className="font-black">G</span> Google로 로그인
                   </button>

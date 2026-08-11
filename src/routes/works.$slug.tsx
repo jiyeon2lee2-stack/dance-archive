@@ -1,5 +1,4 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { useState } from "react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { PageHeader } from "@/components/site/PageHeader";
@@ -33,14 +32,8 @@ export const Route = createFileRoute("/works/$slug")({
   notFoundComponent: WorkNotFound,
 });
 
-const seedComments = [
-  { name: "지민", time: "2일 전", body: "무대 위 반복의 의미를 이렇게 정리해주셔서 감사합니다. 다시 보고 싶어졌어요." },
-  { name: "H.Park", time: "5일 전", body: "안무의 구조 분석이 특히 좋았습니다. 음악과의 관계도 더 듣고 싶네요." },
-];
-
 function WorkDetail() {
   const { work } = Route.useLoaderData();
-  const [comment, setComment] = useState("");
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -77,38 +70,6 @@ function WorkDetail() {
             ))}
           </div>
 
-          {/* 댓글 */}
-          <section className="mt-20">
-            <div className="rule" />
-            <h2 className="type-h2 mt-10">댓글</h2>
-
-            <div className="mt-8">
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={4}
-                placeholder="이 작품에 대한 생각을 남겨보세요"
-                className="field resize-none"
-              />
-              <div className="mt-4 flex justify-end">
-                <button type="button" className="btn-base btn-primary">
-                  댓글 남기기
-                </button>
-              </div>
-            </div>
-
-            <ul className="mt-12 flex flex-col">
-              {seedComments.map((c) => (
-                <li key={c.name} className="border-t border-border py-7">
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-                    <span className="truncate text-sm text-foreground">{c.name}</span>
-                    <span className="type-caption shrink-0 text-[0.6rem]">{c.time}</span>
-                  </div>
-                  <p className="type-body mt-3 text-sm">{c.body}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
         </article>
       </main>
 
