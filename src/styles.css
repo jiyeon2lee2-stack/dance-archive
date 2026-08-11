@@ -39,7 +39,6 @@
   --color-beige: var(--beige);
   --color-beige-foreground: var(--beige-foreground);
   --color-santorini: var(--santorini);
-  --color-naver: var(--naver);
   --color-kakao: var(--kakao);
   --color-kakao-foreground: var(--kakao-foreground);
 
@@ -92,7 +91,6 @@
   /* deep aegean "santorini" blue */
   --santorini: #2e64c8;
 
-  --naver: #03c75a;
   --kakao: #fee500;
   --kakao-foreground: #191600;
 

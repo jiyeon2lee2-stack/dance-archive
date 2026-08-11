@@ -30,7 +30,6 @@ const palette = [
   { name: "Santorini Blue", hex: "#2E64C8", varName: "--santorini" },
   { name: "Primary", hex: "#0057B8", varName: "--primary" },
   { name: "Invert (Ink)", hex: "#141210", varName: "--beige" },
-  { name: "Naver Green", hex: "#03C75A", varName: "--naver" },
   { name: "Kakao Yellow", hex: "#FEE500", varName: "--kakao" },
 ];
 
@@ -144,12 +143,6 @@ function StyleGuide() {
             </a>
           </div>
           <div className="mt-6 flex flex-wrap gap-4">
-            <button
-              className="btn-base text-white"
-              style={{ backgroundColor: "var(--naver)" }}
-            >
-              Naver로 로그인
-            </button>
             <button
               className="btn-base"
               style={{ backgroundColor: "var(--kakao)", color: "var(--kakao-foreground)" }}

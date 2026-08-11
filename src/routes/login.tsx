@@ -119,15 +119,6 @@ function LoginPage() {
                   >
                     <span aria-hidden className="font-bold">K</span> Kakao로 로그인
                   </button>
-                  <button
-                    type="button"
-                    disabled
-                    title="준비 중입니다"
-                    className="btn-base w-full cursor-not-allowed text-white opacity-45"
-                    style={{ backgroundColor: "var(--naver)" }}
-                  >
-                    <span aria-hidden className="font-bold">N</span> Naver로 로그인 (준비 중)
-                  </button>
                 </div>
 
                 <div className="my-7 flex items-center gap-4">
