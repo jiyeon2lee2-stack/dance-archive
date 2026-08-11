@@ -106,7 +106,8 @@ function LoginPage() {
                     type="button"
                     disabled={loading}
                     onClick={() => void oauth("google")}
-                    className="btn-base w-full border border-border bg-white text-foreground hover:opacity-80"
+                    className="btn-base w-full text-white hover:opacity-90"
+                    style={{ backgroundColor: "var(--santorini)" }}
                   >
                     <span aria-hidden className="font-black">G</span> Google로 로그인
                   </button>
