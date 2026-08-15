@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, X, ShieldAlert } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Pencil, Trash2, X, ShieldAlert, ImageUp, Loader2 } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/use-auth";
 import { useIsAdmin } from "@/lib/use-admin";
+import { uploadWorkImage } from "@/lib/upload-image";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -40,6 +41,119 @@ function Field({
 
 const inputCls =
   "w-full border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary";
+
+/* ---------- 이미지 입력 (파일 업로드 + 주소 직접 입력) ---------- */
+
+function ImageField({
+  value,
+  onChange,
+  slugHint,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  slugHint?: string;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [broken, setBroken] = useState(false);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 같은 파일을 다시 골라도 동작하도록 초기화
+    if (!file) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const url = await uploadWorkImage(file, slugHint);
+      setBroken(false);
+      onChange(url);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "업로드에 실패했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="block">
+      <span className="type-caption block text-[0.7rem]">이미지</span>
+      <span className="block text-[0.68rem] text-muted-foreground">
+        내 컴퓨터에 있는 사진을 바로 올리거나, 이미지 주소(https://…)를 붙여넣으세요. 비워두면 기본
+        이미지가 표시됩니다.
+      </span>
+
+      <div className="mt-1.5 flex flex-col gap-3 sm:flex-row sm:items-start">
+        {value && !broken ? (
+          <img
+            src={value}
+            alt="미리보기"
+            onError={() => setBroken(true)}
+            className="h-24 w-32 shrink-0 border border-border object-cover"
+          />
+        ) : (
+          <div className="flex h-24 w-32 shrink-0 items-center justify-center border border-dashed border-border px-2 text-center text-[0.68rem] leading-tight text-muted-foreground">
+            {broken ? "사진을 불러올 수 없는 주소" : "사진 없음"}
+          </div>
+        )}
+
+        <div className="flex-1 space-y-2">
+          <input
+            className={inputCls}
+            value={value}
+            onChange={(e) => {
+              setBroken(false);
+              onChange(e.target.value);
+            }}
+            placeholder="https://..."
+          />
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => void handleFile(e)}
+            />
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => fileRef.current?.click()}
+              className="btn-base btn-secondary px-4 py-2 text-xs disabled:opacity-50"
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> 올리는 중...
+                </>
+              ) : (
+                <>
+                  <ImageUp className="h-4 w-4" /> 내 컴퓨터에서 사진 선택
+                </>
+              )}
+            </button>
+            {value && !busy && (
+              <button
+                type="button"
+                onClick={() => {
+                  setBroken(false);
+                  onChange("");
+                }}
+                className="btn-base btn-secondary px-4 py-2 text-xs"
+              >
+                지우기
+              </button>
+            )}
+          </div>
+          {err && <p className="text-xs text-destructive">{err}</p>}
+          <p className="text-[0.68rem] text-muted-foreground">
+            저작권이 확인된 사진만 올려주세요. 사진을 고르면 자동으로 가로·세로 1600px 이내로 줄여
+            올라갑니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ---------- 작품 관리 ---------- */
 
@@ -215,9 +329,11 @@ function WorksAdmin() {
             </Field>
           </div>
           <div className="mt-4 grid gap-4">
-            <Field label="이미지 URL" hint="비워두면 기본 이미지 사용. 외부 이미지 주소(https://...)를 붙여넣으세요.">
-              <input className={inputCls} value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
-            </Field>
+            <ImageField
+              value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              slugHint={form.slug}
+            />
             <Field label="유튜브 영상 주소" hint="공식 채널 영상만 사용하세요. 주소를 그대로 붙여넣으면 상세 페이지에 영상이 표시됩니다. 비워두면 영상 없이 표시됩니다.">
               <input className={inputCls} value={form.youtube_url} onChange={(e) => setForm({ ...form, youtube_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
             </Field>
