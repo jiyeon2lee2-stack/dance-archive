@@ -4,13 +4,15 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { fetchWork } from "@/lib/works-source";
+import { fetchCompany } from "@/lib/companies-source";
 import { youtubeId } from "@/lib/youtube";
 
 export const Route = createFileRoute("/works/$slug")({
   loader: async ({ params }) => {
     const work = await fetchWork(params.slug);
     if (!work) throw notFound();
-    return { work };
+    const company = work.company ? await fetchCompany(work.company) : undefined;
+    return { work, company: company ?? null };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -34,7 +36,7 @@ export const Route = createFileRoute("/works/$slug")({
 });
 
 function WorkDetail() {
-  const { work } = Route.useLoaderData();
+  const { work, company } = Route.useLoaderData();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -88,6 +90,30 @@ function WorkDetail() {
                   />
                 </div>
                 <p className="type-caption mt-4 text-[0.6rem]">영상 출처: YouTube</p>
+              </section>
+            </Reveal>
+          )}
+
+          {/* 연결된 무용단 */}
+          {company && (
+            <Reveal>
+              <section className="mt-20">
+                <div className="rule" />
+                <p className="eyebrow mt-10">Company</p>
+                <Link
+                  to="/companies/$slug"
+                  params={{ slug: company.slug }}
+                  className="group mt-6 flex items-center justify-between gap-4 border border-border p-6 transition-colors hover:border-primary"
+                >
+                  <span className="min-w-0">
+                    <span className="type-h3 block truncate group-hover:text-primary">{company.name}</span>
+                    <span className="type-caption mt-1.5 block text-[0.62rem]">
+                      {company.country}
+                      {company.founded ? ` · ${company.founded}년 설립` : ""}
+                    </span>
+                  </span>
+                  <span aria-hidden className="shrink-0 text-primary">→</span>
+                </Link>
               </section>
             </Reveal>
           )}

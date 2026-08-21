@@ -5,13 +5,15 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { PageHeader } from "@/components/site/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { fetchCompany } from "@/lib/companies-source";
+import { fetchWorksByCompany } from "@/lib/works-source";
 import { youtubeId } from "@/lib/youtube";
 
 export const Route = createFileRoute("/companies/$slug")({
   loader: async ({ params }) => {
     const company = await fetchCompany(params.slug);
     if (!company) throw notFound();
-    return { company };
+    const works = await fetchWorksByCompany(params.slug);
+    return { company, works };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/companies/$slug")({
 });
 
 function CompanyDetail() {
-  const { company } = Route.useLoaderData();
+  const { company, works } = Route.useLoaderData();
   const vid = youtubeId(company.youtube);
 
   return (
@@ -96,6 +98,34 @@ function CompanyDetail() {
                   />
                 </div>
                 <p className="type-caption mt-4 text-[0.6rem]">영상 출처: YouTube</p>
+              </section>
+            </Reveal>
+          )}
+
+          {/* 이 무용단의 작품 */}
+          {works.length > 0 && (
+            <Reveal>
+              <section className="mt-20">
+                <div className="rule" />
+                <p className="eyebrow mt-10">Works</p>
+                <h2 className="type-h3 mt-4">이 무용단의 작품</h2>
+                <ul className="mt-6 flex flex-col divide-y divide-border border-t border-b border-border">
+                  {works.map((w) => (
+                    <li key={w.slug}>
+                      <Link
+                        to="/works/$slug"
+                        params={{ slug: w.slug }}
+                        className="group flex items-center justify-between gap-4 py-5"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-bold group-hover:text-primary">{w.title}</span>
+                          <span className="type-caption mt-1 block text-[0.6rem]">{w.year}</span>
+                        </span>
+                        <span aria-hidden className="shrink-0 text-primary opacity-0 transition-opacity group-hover:opacity-100">→</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </section>
             </Reveal>
           )}

@@ -52,6 +52,7 @@ type WorkRow = {
   year: number;
   image_url: string | null;
   youtube_url: string | null;
+  company_slug: string | null;
   summary: string;
   analysis: string[];
   display_order: number;
@@ -65,6 +66,7 @@ const emptyWork = {
   year: new Date().getFullYear(),
   image_url: "",
   youtube_url: "",
+  company_slug: "",
   summary: "",
   analysisText: "",
   display_order: 100,
@@ -72,6 +74,7 @@ const emptyWork = {
 
 function WorksAdmin() {
   const [rows, setRows] = useState<WorkRow[]>([]);
+  const [companyOptions, setCompanyOptions] = useState<{ slug: string; name: string }[]>([]);
   const [form, setForm] = useState<typeof emptyWork & { id?: number }>(emptyWork);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -80,12 +83,20 @@ function WorksAdmin() {
   const load = async () => {
     const { data, error } = await supabase
       .from("works")
-      .select("id,slug,title,choreographer,country,year,image_url,youtube_url,summary,analysis,display_order")
+      .select("id,slug,title,choreographer,country,year,image_url,youtube_url,company_slug,summary,analysis,display_order")
       .order("display_order");
     if (!error && data) setRows(data as WorkRow[]);
   };
   useEffect(() => {
     void load();
+    // 무용단 선택 목록 (연결용)
+    supabase
+      .from("companies")
+      .select("slug,name")
+      .order("name")
+      .then(({ data }) => {
+        if (data) setCompanyOptions(data as { slug: string; name: string }[]);
+      });
   }, []);
 
   const startNew = () => {
@@ -103,6 +114,7 @@ function WorksAdmin() {
       year: r.year,
       image_url: r.image_url ?? "",
       youtube_url: r.youtube_url ?? "",
+      company_slug: r.company_slug ?? "",
       summary: r.summary,
       analysisText: (r.analysis ?? []).join("\n\n"),
       display_order: r.display_order,
@@ -126,6 +138,7 @@ function WorksAdmin() {
       year: Number(form.year) || 0,
       image_url: form.image_url.trim() || null,
       youtube_url: form.youtube_url.trim() || null,
+      company_slug: form.company_slug || null,
       summary: form.summary.trim(),
       analysis: form.analysisText
         .split(/\n\s*\n/)
@@ -220,6 +233,14 @@ function WorksAdmin() {
             </Field>
             <Field label="유튜브 영상 주소" hint="공식 채널 영상만 사용하세요. 주소를 그대로 붙여넣으면 상세 페이지에 영상이 표시됩니다. 비워두면 영상 없이 표시됩니다.">
               <input className={inputCls} value={form.youtube_url} onChange={(e) => setForm({ ...form, youtube_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
+            </Field>
+            <Field label="무용단 연결" hint="선택하면 작품 페이지와 무용단 페이지가 서로 연결됩니다. 무용단은 '무용단 관리' 탭에서 먼저 등록하세요.">
+              <select className={inputCls} value={form.company_slug} onChange={(e) => setForm({ ...form, company_slug: e.target.value })}>
+                <option value="">연결 안 함</option>
+                {companyOptions.map((c) => (
+                  <option key={c.slug} value={c.slug}>{c.name}</option>
+                ))}
+              </select>
             </Field>
             <Field label="요약" hint="목록 카드에 표시되는 한두 문장">
               <textarea className={inputCls} rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />

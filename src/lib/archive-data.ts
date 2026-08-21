@@ -15,6 +15,8 @@ export type Work = {
   analysis: string[];
   /** 유튜브 영상 주소 (선택). 있으면 상세 페이지에 영상이 표시됩니다. */
   youtube?: string;
+  /** 연결된 무용단의 slug (선택). 있으면 작품↔무용단 페이지가 서로 연결됩니다. */
+  company?: string;
 };
 
 export const works: Work[] = [

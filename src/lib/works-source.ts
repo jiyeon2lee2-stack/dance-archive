@@ -17,6 +17,7 @@ type WorkRow = {
   summary: string;
   analysis: string[] | null;
   youtube_url: string | null;
+  company_slug: string | null;
 };
 
 // slug → 프로젝트에 내장된 이미지 매핑 (DB의 image_url이 비어있을 때 사용)
@@ -36,6 +37,7 @@ function rowToWork(row: WorkRow): Work {
     summary: row.summary,
     analysis: Array.isArray(row.analysis) ? row.analysis : [],
     ...(row.youtube_url ? { youtube: row.youtube_url } : {}),
+    ...(row.company_slug ? { company: row.company_slug } : {}),
   };
 }
 
@@ -43,7 +45,7 @@ export async function fetchWorks(): Promise<Work[]> {
   try {
     const { data, error } = await supabase
       .from("works")
-      .select("slug,title,choreographer,country,year,image_url,summary,analysis,youtube_url")
+      .select("slug,title,choreographer,country,year,image_url,summary,analysis,youtube_url,company_slug")
       .order("display_order", { ascending: true })
       .order("year", { ascending: true });
 
@@ -62,7 +64,7 @@ export async function fetchWork(slug: string): Promise<Work | undefined> {
   try {
     const { data, error } = await supabase
       .from("works")
-      .select("slug,title,choreographer,country,year,image_url,summary,analysis,youtube_url")
+      .select("slug,title,choreographer,country,year,image_url,summary,analysis,youtube_url,company_slug")
       .eq("slug", slug)
       .maybeSingle();
 
@@ -84,4 +86,23 @@ export function buildFilterOptions(list: Work[]) {
     years: ["모든 연도", ...Array.from(new Set(list.map((w) => String(w.year))))],
     choreographers: ["모든 안무가", ...Array.from(new Set(list.map((w) => w.choreographer)))],
   };
+}
+
+// 특정 무용단에 연결된 작품 목록 (무용단 상세 페이지에서 사용)
+export async function fetchWorksByCompany(companySlug: string): Promise<Work[]> {
+  try {
+    const { data, error } = await supabase
+      .from("works")
+      .select("slug,title,choreographer,country,year,image_url,summary,analysis,youtube_url,company_slug")
+      .eq("company_slug", companySlug)
+      .order("year", { ascending: true });
+    if (error || !data) {
+      if (error) console.error("[works-by-company] DB 조회 실패:", error.message);
+      return [];
+    }
+    return (data as WorkRow[]).map(rowToWork);
+  } catch (e) {
+    console.error("[works-by-company] DB 연결 오류:", e);
+    return [];
+  }
 }
