@@ -7,27 +7,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { useAuth } from "@/lib/use-auth";
-import { consumeReturnPath } from "@/lib/after-login";
-
-// 로그인 후 원래 읽던 페이지로 되돌려 보냅니다.
-// (소셜 로그인은 항상 홈으로 돌아오기 때문에 필요합니다.)
-function ReturnAfterLogin() {
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (!user) return;
-    const target = consumeReturnPath();
-    if (!target) return;
-    if (target === window.location.pathname) return;
-    window.location.replace(target);
-  }, [user]);
-
-  return null;
-}
 
 function NotFoundComponent() {
   return (
@@ -127,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -144,7 +126,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ReturnAfterLogin />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

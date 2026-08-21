@@ -7,7 +7,6 @@ import { PageHeader } from "@/components/site/PageHeader";
 import { Reveal } from "@/components/site/Reveal";
 import { supabase } from "@/lib/supabase";
 import { useAuth, displayName } from "@/lib/use-auth";
-import { FREE_VIEW_LIMIT } from "@/lib/free-views";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -15,22 +14,19 @@ export const Route = createFileRoute("/login")({
       { title: "로그인 | 현대 무용 아카이브" },
       {
         name: "description",
-        content: "로그인하면 모든 작품 분석을 제한 없이 열람할 수 있습니다.",
+        content: "소셜 계정으로 로그인하고 작품 분석과 입시·유학 정보를 열람하세요.",
       },
       { property: "og:title", content: "로그인 | 현대 무용 아카이브" },
       {
         property: "og:description",
-        content: "로그인하면 모든 작품 분석을 제한 없이 열람할 수 있습니다.",
+        content: "소셜 계정으로 로그인하고 작품 분석 콘텐츠를 열람하세요.",
       },
     ],
   }),
   component: LoginPage,
 });
 
-const benefits = [
-  `모든 작품 분석 무제한 열람 (로그인 전에는 ${FREE_VIEW_LIMIT}편까지)`,
-  "휴대폰·PC 어디서 보든 열람 제한 없음",
-];
+const benefits = ["작품 분석 콘텐츠 열람", "입시 및 유학 정보 열람"];
 
 function friendlyError(message: string): string {
   if (/provider is not enabled|Unsupported provider/i.test(message))
