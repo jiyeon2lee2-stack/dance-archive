@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AdmissionsRouteImport } from './routes/admissions'
+import { Route as EventsRouteImport } from './routes/events'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as StudyAbroadRouteImport } from './routes/study-abroad'
 import { Route as StyleguideRouteImport } from './routes/styleguide'
@@ -33,6 +34,11 @@ const AdminRoute = AdminRouteImport.update({
 const AdmissionsRoute = AdmissionsRouteImport.update({
   id: '/admissions',
   path: '/admissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/admissions': typeof AdmissionsRoute
+  '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/study-abroad': typeof StudyAbroadRoute
   '/styleguide': typeof StyleguideRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/admissions': typeof AdmissionsRoute
+  '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/study-abroad': typeof StudyAbroadRoute
   '/styleguide': typeof StyleguideRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/admissions': typeof AdmissionsRoute
+  '/events': typeof EventsRoute
   '/login': typeof LoginRoute
   '/study-abroad': typeof StudyAbroadRoute
   '/styleguide': typeof StyleguideRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admissions'
+    | '/events'
     | '/login'
     | '/study-abroad'
     | '/styleguide'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admissions'
+    | '/events'
     | '/login'
     | '/study-abroad'
     | '/styleguide'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admissions'
+    | '/events'
     | '/login'
     | '/study-abroad'
     | '/styleguide'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AdmissionsRoute: typeof AdmissionsRoute
+  EventsRoute: typeof EventsRoute
   LoginRoute: typeof LoginRoute
   StudyAbroadRoute: typeof StudyAbroadRoute
   StyleguideRoute: typeof StyleguideRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/admissions'
       fullPath: '/admissions'
       preLoaderRoute: typeof AdmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AdmissionsRoute: AdmissionsRoute,
+  EventsRoute: EventsRoute,
   LoginRoute: LoginRoute,
   StudyAbroadRoute: StudyAbroadRoute,
   StyleguideRoute: StyleguideRoute,

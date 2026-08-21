@@ -479,6 +479,215 @@ function CompaniesAdmin() {
   );
 }
 
+/* ---------- 일정 관리 (공연·워크샵) ---------- */
+
+type EventAdminRow = {
+  id: number;
+  title: string;
+  kind: "performance" | "workshop";
+  region: "domestic" | "abroad";
+  start_date: string;
+  end_date: string | null;
+  venue: string;
+  description: string;
+  link_url: string | null;
+};
+
+const emptyEvent = {
+  title: "",
+  kind: "performance" as "performance" | "workshop",
+  region: "domestic" as "domestic" | "abroad",
+  start_date: "",
+  end_date: "",
+  venue: "",
+  description: "",
+  link_url: "",
+};
+
+function EventsAdmin() {
+  const [rows, setRows] = useState<EventAdminRow[]>([]);
+  const [form, setForm] = useState<typeof emptyEvent & { id?: number }>(emptyEvent);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from("events")
+      .select("id,title,kind,region,start_date,end_date,venue,description,link_url")
+      .order("start_date", { ascending: false });
+    if (!error && data) setRows(data as EventAdminRow[]);
+  };
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const isPast = (r: EventAdminRow) =>
+    new Date(`${r.end_date ?? r.start_date}T23:59:59`) < new Date();
+
+  const startNew = () => {
+    setForm(emptyEvent);
+    setOpen(true);
+    setMsg(null);
+  };
+  const startEdit = (r: EventAdminRow) => {
+    setForm({
+      id: r.id,
+      title: r.title,
+      kind: r.kind,
+      region: r.region,
+      start_date: r.start_date,
+      end_date: r.end_date ?? "",
+      venue: r.venue,
+      description: r.description,
+      link_url: r.link_url ?? "",
+    });
+    setOpen(true);
+    setMsg(null);
+  };
+
+  const save = async () => {
+    if (!form.title.trim() || !form.start_date) {
+      setMsg("제목과 시작일은 필수입니다.");
+      return;
+    }
+    if (form.end_date && form.end_date < form.start_date) {
+      setMsg("종료일이 시작일보다 빠릅니다.");
+      return;
+    }
+    setBusy(true);
+    setMsg(null);
+    const payload = {
+      title: form.title.trim(),
+      kind: form.kind,
+      region: form.region,
+      start_date: form.start_date,
+      end_date: form.end_date || null,
+      venue: form.venue.trim(),
+      description: form.description.trim(),
+      link_url: form.link_url.trim() || null,
+    };
+    const q = form.id
+      ? supabase.from("events").update(payload).eq("id", form.id)
+      : supabase.from("events").insert(payload);
+    const { error } = await q;
+    setBusy(false);
+    if (error) {
+      setMsg(`저장 실패: ${error.message}`);
+    } else {
+      setOpen(false);
+      void load();
+    }
+  };
+
+  const remove = async (r: EventAdminRow) => {
+    if (!confirm(`정말 삭제할까요?\n"${r.title}"`)) return;
+    const { error } = await supabase.from("events").delete().eq("id", r.id);
+    if (error) alert(`삭제 실패: ${error.message}`);
+    else void load();
+  };
+
+  return (
+    <section>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="type-h3">일정 목록 ({rows.length})</h2>
+        <button type="button" onClick={startNew} className="btn-base btn-primary px-4 py-2 text-xs">
+          <Plus className="h-4 w-4" /> 새 일정
+        </button>
+      </div>
+      <p className="type-caption mt-2 text-[0.62rem] text-muted-foreground">
+        날짜가 지난 일정은 사이트에서 자동으로 숨겨집니다. 여기서는 관리를 위해 모두 표시됩니다.
+      </p>
+
+      <div className="mt-6 flex flex-col divide-y divide-border border border-border">
+        {rows.map((r) => (
+          <div key={r.id} className={`flex items-center gap-3 px-4 py-3 ${isPast(r) ? "opacity-45" : ""}`}>
+            <span className="sticker shrink-0">{r.kind === "performance" ? "공연" : "워크샵"}</span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold">
+                {r.title}
+                {isPast(r) && <span className="ml-2 text-xs font-normal text-muted-foreground">(지남)</span>}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {r.region === "domestic" ? "국내" : "해외"} · {r.start_date}
+                {r.end_date ? ` ~ ${r.end_date}` : ""}{r.venue ? ` · ${r.venue}` : ""}
+              </p>
+            </div>
+            <button type="button" onClick={() => startEdit(r)} className="btn-ghost" aria-label="수정">
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={() => void remove(r)} className="btn-ghost text-destructive" aria-label="삭제">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+        {rows.length === 0 && (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            일정이 없습니다. "새 일정" 버튼으로 첫 일정을 등록해보세요.
+          </p>
+        )}
+      </div>
+
+      {open && (
+        <div className="grain-panel mt-8 p-6 md:p-8">
+          <div className="flex items-center justify-between">
+            <h3 className="type-h3">{form.id ? "일정 수정" : "새 일정"}</h3>
+            <button type="button" onClick={() => setOpen(false)} className="btn-ghost" aria-label="닫기">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <Field label="제목" hint="예: 국립현대무용단 '정글' / 호페쉬 셱터 마스터클래스">
+              <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            </Field>
+            <Field label="구분">
+              <select className={inputCls} value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as "performance" | "workshop" })}>
+                <option value="performance">공연</option>
+                <option value="workshop">워크샵</option>
+              </select>
+            </Field>
+            <Field label="지역">
+              <select className={inputCls} value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value as "domestic" | "abroad" })}>
+                <option value="domestic">국내</option>
+                <option value="abroad">해외</option>
+              </select>
+            </Field>
+            <Field label="장소" hint="예: 예술의전당 CJ토월극장 / 런던 새들러스 웰스">
+              <input className={inputCls} value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} />
+            </Field>
+            <Field label="시작일">
+              <input type="date" className={inputCls} value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+            </Field>
+            <Field label="종료일" hint="하루짜리 일정이면 비워두세요">
+              <input type="date" className={inputCls} value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
+            </Field>
+          </div>
+          <div className="mt-4 grid gap-4">
+            <Field label="예매/신청 링크" hint="공식 예매처나 신청 페이지 주소. '자세히 보기' 버튼으로 표시됩니다.">
+              <input className={inputCls} value={form.link_url} onChange={(e) => setForm({ ...form, link_url: e.target.value })} placeholder="https://..." />
+            </Field>
+            <Field label="설명" hint="한두 문장이면 충분합니다">
+              <textarea className={inputCls} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </Field>
+          </div>
+
+          {msg && <p className="mt-4 text-sm text-destructive">{msg}</p>}
+
+          <div className="mt-6 flex gap-3">
+            <button type="button" disabled={busy} onClick={() => void save()} className="btn-base btn-primary px-6 disabled:opacity-50">
+              {busy ? "저장 중..." : "저장"}
+            </button>
+            <button type="button" onClick={() => setOpen(false)} className="btn-base btn-secondary px-6">
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ---------- 회원 관리 ---------- */
 
 type MemberRow = {
@@ -807,7 +1016,7 @@ function InfoAdmin() {
 function AdminPage() {
   const { user, loading } = useAuth();
   const { isAdmin, checking } = useIsAdmin(user);
-  const [tab, setTab] = useState<"works" | "info" | "companies" | "members">("works");
+  const [tab, setTab] = useState<"works" | "info" | "companies" | "events" | "members">("works");
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -857,13 +1066,20 @@ function AdminPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setTab("events")}
+                className={`btn-base px-5 py-2 text-xs ${tab === "events" ? "btn-primary" : "btn-secondary"}`}
+              >
+                일정 관리
+              </button>
+              <button
+                type="button"
                 onClick={() => setTab("members")}
                 className={`btn-base px-5 py-2 text-xs ${tab === "members" ? "btn-primary" : "btn-secondary"}`}
               >
                 회원 관리
               </button>
             </div>
-            <div className="mt-8">{tab === "works" ? <WorksAdmin /> : tab === "info" ? <InfoAdmin /> : tab === "companies" ? <CompaniesAdmin /> : <MembersAdmin />}</div>
+            <div className="mt-8">{tab === "works" ? <WorksAdmin /> : tab === "info" ? <InfoAdmin /> : tab === "companies" ? <CompaniesAdmin /> : tab === "events" ? <EventsAdmin /> : <MembersAdmin />}</div>
           </>
         )}
       </main>
