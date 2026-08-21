@@ -7,12 +7,19 @@ import { WireGlobe } from "@/components/site/WireGlobe";
 import { Reveal } from "@/components/site/Reveal";
 import { type Work } from "@/lib/archive-data";
 import { fetchWorks } from "@/lib/works-source";
+import {
+  fetchUpcomingEvents,
+  formatEventDate,
+  kindLabel,
+  regionLabel,
+  type DanceEvent,
+} from "@/lib/events-source";
 import heroImage from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const works = await fetchWorks();
-    return { featured: works.slice(0, 3) };
+    const [works, events] = await Promise.all([fetchWorks(), fetchUpcomingEvents()]);
+    return { featured: works.slice(0, 3), upcoming: events.slice(0, 3) };
   },
   head: () => ({
     meta: [
@@ -48,7 +55,7 @@ const features = [
 ];
 
 function Home() {
-  const { featured } = Route.useLoaderData() as { featured: Work[] };
+  const { featured, upcoming } = Route.useLoaderData() as { featured: Work[]; upcoming: DanceEvent[] };
 
   return (
     <div className="min-h-screen">
@@ -126,6 +133,45 @@ function Home() {
           </Link>
         </Reveal>
       </section>
+
+      {/* 다가오는 일정 — 등록된 일정이 없으면 섹션 자체가 표시되지 않습니다 */}
+      {upcoming.length > 0 && (
+        <section className="border-t border-border">
+          <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-10 md:py-20">
+            <Reveal>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p className="eyebrow">What's On</p>
+                  <h2 className="type-h2 mt-3">다가오는 일정</h2>
+                </div>
+                <Link to="/events" className="btn-base btn-secondary px-5 py-2 text-xs">
+                  전체 일정 보기 <span aria-hidden>→</span>
+                </Link>
+              </div>
+            </Reveal>
+            <ul className="mt-10 flex flex-col divide-y divide-border border-t border-b border-border">
+              {upcoming.map((e, i) => (
+                <Reveal key={e.id} delay={i * 60}>
+                  <li>
+                    <Link to="/events" className="group grid grid-cols-1 items-baseline gap-x-6 gap-y-1.5 py-5 md:grid-cols-[auto_minmax(0,1fr)_auto]">
+                      <span className="flex shrink-0 gap-2">
+                        <span className="sticker sticker-accent">{kindLabel[e.kind]}</span>
+                        <span className="sticker">{regionLabel[e.region]}</span>
+                      </span>
+                      <span className="min-w-0 truncate text-sm font-bold group-hover:text-primary">
+                        {e.title}
+                      </span>
+                      <span className="mono text-xs tracking-wide text-muted-foreground">
+                        {formatEventDate(e)}
+                      </span>
+                    </Link>
+                  </li>
+                </Reveal>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* 무엇을 경험할 수 있나요? — inverted beige block */}
       <section className="invert-block relative isolate overflow-hidden">
