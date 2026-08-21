@@ -245,6 +245,219 @@ function WorksAdmin() {
   );
 }
 
+/* ---------- 무용단 관리 ---------- */
+
+type CompanyRow = {
+  id: number;
+  slug: string;
+  name: string;
+  country: string;
+  founded_year: number | null;
+  director: string;
+  image_url: string | null;
+  website_url: string | null;
+  youtube_url: string | null;
+  summary: string;
+  description: string[];
+  display_order: number;
+};
+
+const emptyCompany = {
+  slug: "",
+  name: "",
+  country: "",
+  founded_year: "" as string | number,
+  director: "",
+  image_url: "",
+  website_url: "",
+  youtube_url: "",
+  summary: "",
+  descriptionText: "",
+  display_order: 100,
+};
+
+function CompaniesAdmin() {
+  const [rows, setRows] = useState<CompanyRow[]>([]);
+  const [form, setForm] = useState<typeof emptyCompany & { id?: number }>(emptyCompany);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data, error } = await supabase
+      .from("companies")
+      .select("id,slug,name,country,founded_year,director,image_url,website_url,youtube_url,summary,description,display_order")
+      .order("display_order");
+    if (!error && data) setRows(data as CompanyRow[]);
+  };
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const startNew = () => {
+    setForm(emptyCompany);
+    setOpen(true);
+    setMsg(null);
+  };
+  const startEdit = (r: CompanyRow) => {
+    setForm({
+      id: r.id,
+      slug: r.slug,
+      name: r.name,
+      country: r.country,
+      founded_year: r.founded_year ?? "",
+      director: r.director,
+      image_url: r.image_url ?? "",
+      website_url: r.website_url ?? "",
+      youtube_url: r.youtube_url ?? "",
+      summary: r.summary,
+      descriptionText: (r.description ?? []).join("\n\n"),
+      display_order: r.display_order,
+    });
+    setOpen(true);
+    setMsg(null);
+  };
+
+  const save = async () => {
+    if (!form.slug.trim() || !form.name.trim()) {
+      setMsg("slug와 이름은 필수입니다.");
+      return;
+    }
+    setBusy(true);
+    setMsg(null);
+    const payload = {
+      slug: form.slug.trim(),
+      name: form.name.trim(),
+      country: form.country.trim(),
+      founded_year: form.founded_year === "" ? null : Number(form.founded_year) || null,
+      director: form.director.trim(),
+      image_url: form.image_url.trim() || null,
+      website_url: form.website_url.trim() || null,
+      youtube_url: form.youtube_url.trim() || null,
+      summary: form.summary.trim(),
+      description: form.descriptionText
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter(Boolean),
+      display_order: Number(form.display_order) || 100,
+    };
+    const q = form.id
+      ? supabase.from("companies").update(payload).eq("id", form.id)
+      : supabase.from("companies").insert(payload);
+    const { error } = await q;
+    setBusy(false);
+    if (error) {
+      setMsg(`저장 실패: ${error.message}`);
+    } else {
+      setOpen(false);
+      void load();
+    }
+  };
+
+  const remove = async (r: CompanyRow) => {
+    if (!confirm(`정말 삭제할까요?\n"${r.name}"`)) return;
+    const { error } = await supabase.from("companies").delete().eq("id", r.id);
+    if (error) alert(`삭제 실패: ${error.message}`);
+    else void load();
+  };
+
+  return (
+    <section>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="type-h3">무용단 목록 ({rows.length})</h2>
+        <button type="button" onClick={startNew} className="btn-base btn-primary px-4 py-2 text-xs">
+          <Plus className="h-4 w-4" /> 새 무용단
+        </button>
+      </div>
+
+      <div className="mt-6 flex flex-col divide-y divide-border border border-border">
+        {rows.map((r) => (
+          <div key={r.id} className="flex items-center gap-3 px-4 py-3">
+            <span className="sticker shrink-0">{r.display_order}</span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold">{r.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {r.country}{r.founded_year ? ` · ${r.founded_year}년 설립` : ""} · /companies/{r.slug}
+              </p>
+            </div>
+            <button type="button" onClick={() => startEdit(r)} className="btn-ghost" aria-label="수정">
+              <Pencil className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={() => void remove(r)} className="btn-ghost text-destructive" aria-label="삭제">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+        {rows.length === 0 && (
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+            무용단이 없습니다. "새 무용단" 버튼으로 첫 무용단을 등록해보세요.
+          </p>
+        )}
+      </div>
+
+      {open && (
+        <div className="grain-panel mt-8 p-6 md:p-8">
+          <div className="flex items-center justify-between">
+            <h3 className="type-h3">{form.id ? "무용단 수정" : "새 무용단"}</h3>
+            <button type="button" onClick={() => setOpen(false)} className="btn-ghost" aria-label="닫기">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <Field label="이름" hint="예: 호페쉬 셱터 컴퍼니">
+              <input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </Field>
+            <Field label="slug (영문 주소)" hint="예: hofesh-shechter → /companies/hofesh-shechter">
+              <input className={inputCls} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+            </Field>
+            <Field label="국가" hint="예: 영국">
+              <input className={inputCls} value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
+            </Field>
+            <Field label="설립 연도" hint="모르면 비워두세요">
+              <input type="number" className={inputCls} value={form.founded_year} onChange={(e) => setForm({ ...form, founded_year: e.target.value })} />
+            </Field>
+            <Field label="예술감독 / 설립자">
+              <input className={inputCls} value={form.director} onChange={(e) => setForm({ ...form, director: e.target.value })} />
+            </Field>
+            <Field label="표시 순서" hint="낮을수록 먼저 표시">
+              <input type="number" className={inputCls} value={form.display_order} onChange={(e) => setForm({ ...form, display_order: Number(e.target.value) })} />
+            </Field>
+          </div>
+          <div className="mt-4 grid gap-4">
+            <Field label="이미지 URL" hint="비워두면 이미지 없이 표시됩니다. 저작권 확인된 이미지만 사용하세요.">
+              <input className={inputCls} value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
+            </Field>
+            <Field label="공식 웹사이트 주소" hint="상세 페이지에 '공식 웹사이트' 버튼으로 표시됩니다.">
+              <input className={inputCls} value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="https://..." />
+            </Field>
+            <Field label="유튜브 영상 주소" hint="공식 채널 영상만 사용하세요. 비워두면 영상 없이 표시됩니다.">
+              <input className={inputCls} value={form.youtube_url} onChange={(e) => setForm({ ...form, youtube_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
+            </Field>
+            <Field label="요약" hint="목록 카드에 표시되는 한두 문장">
+              <textarea className={inputCls} rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
+            </Field>
+            <Field label="소개 본문" hint="문단 사이를 빈 줄로 구분하세요. 각 문단이 상세 페이지의 한 단락이 됩니다.">
+              <textarea className={inputCls} rows={10} value={form.descriptionText} onChange={(e) => setForm({ ...form, descriptionText: e.target.value })} />
+            </Field>
+          </div>
+
+          {msg && <p className="mt-4 text-sm text-destructive">{msg}</p>}
+
+          <div className="mt-6 flex gap-3">
+            <button type="button" disabled={busy} onClick={() => void save()} className="btn-base btn-primary px-6 disabled:opacity-50">
+              {busy ? "저장 중..." : "저장"}
+            </button>
+            <button type="button" onClick={() => setOpen(false)} className="btn-base btn-secondary px-6">
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ---------- 회원 관리 ---------- */
 
 type MemberRow = {
@@ -573,7 +786,7 @@ function InfoAdmin() {
 function AdminPage() {
   const { user, loading } = useAuth();
   const { isAdmin, checking } = useIsAdmin(user);
-  const [tab, setTab] = useState<"works" | "info" | "members">("works");
+  const [tab, setTab] = useState<"works" | "info" | "companies" | "members">("works");
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -616,13 +829,20 @@ function AdminPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setTab("companies")}
+                className={`btn-base px-5 py-2 text-xs ${tab === "companies" ? "btn-primary" : "btn-secondary"}`}
+              >
+                무용단 관리
+              </button>
+              <button
+                type="button"
                 onClick={() => setTab("members")}
                 className={`btn-base px-5 py-2 text-xs ${tab === "members" ? "btn-primary" : "btn-secondary"}`}
               >
                 회원 관리
               </button>
             </div>
-            <div className="mt-8">{tab === "works" ? <WorksAdmin /> : tab === "info" ? <InfoAdmin /> : <MembersAdmin />}</div>
+            <div className="mt-8">{tab === "works" ? <WorksAdmin /> : tab === "info" ? <InfoAdmin /> : tab === "companies" ? <CompaniesAdmin /> : <MembersAdmin />}</div>
           </>
         )}
       </main>

@@ -15,6 +15,8 @@ import { Route as AdmissionsRouteImport } from './routes/admissions'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as StudyAbroadRouteImport } from './routes/study-abroad'
 import { Route as StyleguideRouteImport } from './routes/styleguide'
+import { Route as CompaniesIndexRouteImport } from './routes/companies.index'
+import { Route as CompaniesSlugRouteImport } from './routes/companies.$slug'
 import { Route as WorksIndexRouteImport } from './routes/works.index'
 import { Route as WorksSlugRouteImport } from './routes/works.$slug'
 
@@ -48,6 +50,16 @@ const StyleguideRoute = StyleguideRouteImport.update({
   path: '/styleguide',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompaniesIndexRoute = CompaniesIndexRouteImport.update({
+  id: '/companies/',
+  path: '/companies/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompaniesSlugRoute = CompaniesSlugRouteImport.update({
+  id: '/companies/$slug',
+  path: '/companies/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorksIndexRoute = WorksIndexRouteImport.update({
   id: '/works/',
   path: '/works/',
@@ -66,7 +78,9 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/study-abroad': typeof StudyAbroadRoute
   '/styleguide': typeof StyleguideRoute
+  '/companies/$slug': typeof CompaniesSlugRoute
   '/works/$slug': typeof WorksSlugRoute
+  '/companies/': typeof CompaniesIndexRoute
   '/works/': typeof WorksIndexRoute
 }
 export interface FileRoutesByTo {
@@ -76,7 +90,9 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/study-abroad': typeof StudyAbroadRoute
   '/styleguide': typeof StyleguideRoute
+  '/companies/$slug': typeof CompaniesSlugRoute
   '/works/$slug': typeof WorksSlugRoute
+  '/companies': typeof CompaniesIndexRoute
   '/works': typeof WorksIndexRoute
 }
 export interface FileRoutesById {
@@ -87,7 +103,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/study-abroad': typeof StudyAbroadRoute
   '/styleguide': typeof StyleguideRoute
+  '/companies/$slug': typeof CompaniesSlugRoute
   '/works/$slug': typeof WorksSlugRoute
+  '/companies/': typeof CompaniesIndexRoute
   '/works/': typeof WorksIndexRoute
 }
 export interface FileRouteTypes {
@@ -99,7 +117,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/study-abroad'
     | '/styleguide'
+    | '/companies/$slug'
     | '/works/$slug'
+    | '/companies/'
     | '/works/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -109,7 +129,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/study-abroad'
     | '/styleguide'
+    | '/companies/$slug'
     | '/works/$slug'
+    | '/companies'
     | '/works'
   id:
     | '__root__'
@@ -119,7 +141,9 @@ export interface FileRouteTypes {
     | '/login'
     | '/study-abroad'
     | '/styleguide'
+    | '/companies/$slug'
     | '/works/$slug'
+    | '/companies/'
     | '/works/'
   fileRoutesById: FileRoutesById
 }
@@ -130,7 +154,9 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   StudyAbroadRoute: typeof StudyAbroadRoute
   StyleguideRoute: typeof StyleguideRoute
+  CompaniesSlugRoute: typeof CompaniesSlugRoute
   WorksSlugRoute: typeof WorksSlugRoute
+  CompaniesIndexRoute: typeof CompaniesIndexRoute
   WorksIndexRoute: typeof WorksIndexRoute
 }
 
@@ -178,6 +204,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StyleguideRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/companies/': {
+      id: '/companies/'
+      path: '/companies'
+      fullPath: '/companies/'
+      preLoaderRoute: typeof CompaniesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/companies/$slug': {
+      id: '/companies/$slug'
+      path: '/companies/$slug'
+      fullPath: '/companies/$slug'
+      preLoaderRoute: typeof CompaniesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/works/': {
       id: '/works/'
       path: '/works'
@@ -202,7 +242,9 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   StudyAbroadRoute: StudyAbroadRoute,
   StyleguideRoute: StyleguideRoute,
+  CompaniesSlugRoute: CompaniesSlugRoute,
   WorksSlugRoute: WorksSlugRoute,
+  CompaniesIndexRoute: CompaniesIndexRoute,
   WorksIndexRoute: WorksIndexRoute,
 }
 export const routeTree = rootRouteImport

@@ -6,6 +6,7 @@ import { useIsAdmin } from "@/lib/use-admin";
 
 const nav = [
   { to: "/works", label: "작품 탐색" },
+  { to: "/companies", label: "무용단" },
   { to: "/admissions", label: "한국 입시" },
   { to: "/study-abroad", label: "해외 유학" },
 ] as const;
