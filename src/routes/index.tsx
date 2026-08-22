@@ -15,12 +15,13 @@ import {
   regionLabel,
   type DanceEvent,
 } from "@/lib/events-source";
+import { EventsWorldMap } from "@/components/site/EventsWorldMap";
 import heroImage from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
     const [works, events] = await Promise.all([fetchWorks(), fetchUpcomingEvents()]);
-    return { featured: works.slice(0, 3), upcoming: events.slice(0, 3) };
+    return { featured: works.slice(0, 3), upcoming: events.slice(0, 3), allEvents: events };
   },
   head: () => ({
     meta: [
@@ -105,7 +106,11 @@ function bigDate(iso: string): string {
 }
 
 function Home() {
-  const { featured, upcoming } = Route.useLoaderData() as { featured: Work[]; upcoming: DanceEvent[] };
+  const { featured, upcoming, allEvents } = Route.useLoaderData() as {
+    featured: Work[];
+    upcoming: DanceEvent[];
+    allEvents: DanceEvent[];
+  };
 
   return (
     <div className="min-h-screen">
@@ -199,7 +204,12 @@ function Home() {
                 </Link>
               </div>
             </Reveal>
-            <ul className="mt-10 grid gap-6 md:grid-cols-3">
+
+            <Reveal className="mt-10">
+              <EventsWorldMap events={allEvents} />
+            </Reveal>
+
+            <ul className="mt-12 grid gap-6 md:grid-cols-3">
               {upcoming.map((e, i) => (
                 <Reveal key={e.id} delay={i * 80}>
                   <li className="h-full">

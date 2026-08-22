@@ -413,3 +413,25 @@
     transition: none;
   }
 }
+
+/* 세계지도 일정 점의 맥박 효과 */
+.map-pulse {
+  animation: map-pulse 2.4s ease-out infinite;
+}
+@keyframes map-pulse {
+  0% {
+    r: 6;
+    opacity: 0.5;
+  }
+  75%,
+  100% {
+    r: 18;
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-pulse {
+    animation: none;
+    opacity: 0;
+  }
+}
