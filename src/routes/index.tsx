@@ -54,6 +54,27 @@ const features = [
   },
 ];
 
+// 시작까지 남은 일수 (오늘이면 0, 시작했으면 음수)
+function daysUntil(iso: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((new Date(`${iso}T00:00:00`).getTime() - today.getTime()) / 86_400_000);
+}
+
+function dday(start: string): string | null {
+  const d = daysUntil(start);
+  if (d < 0) return "진행 중";
+  if (d === 0) return "오늘";
+  if (d <= 14) return `D-${d}`;
+  return null;
+}
+
+// "09.12" 형태의 큰 날짜 숫자
+function bigDate(iso: string): string {
+  const d = new Date(`${iso}T00:00:00`);
+  return `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function Home() {
   const { featured, upcoming } = Route.useLoaderData() as { featured: Work[]; upcoming: DanceEvent[] };
 
@@ -149,20 +170,33 @@ function Home() {
                 </Link>
               </div>
             </Reveal>
-            <ul className="mt-10 flex flex-col divide-y divide-border border-t border-b border-border">
+            <ul className="mt-10 grid gap-6 md:grid-cols-3">
               {upcoming.map((e, i) => (
-                <Reveal key={e.id} delay={i * 60}>
-                  <li>
-                    <Link to="/events" className="group grid grid-cols-1 items-baseline gap-x-6 gap-y-1.5 py-5 md:grid-cols-[auto_minmax(0,1fr)_auto]">
-                      <span className="flex shrink-0 gap-2">
+                <Reveal key={e.id} delay={i * 80}>
+                  <li className="h-full">
+                    <Link
+                      to="/events"
+                      className="group flex h-full flex-col border border-border p-7 transition-all duration-200 hover:-translate-y-1 hover:border-primary md:p-8"
+                    >
+                      <span className="flex flex-wrap items-center gap-2">
                         <span className="sticker sticker-accent">{kindLabel[e.kind]}</span>
                         <span className="sticker">{regionLabel[e.region]}</span>
+                        {dday(e.start) && (
+                          <span className="mono ml-auto text-xs font-bold text-primary">{dday(e.start)}</span>
+                        )}
                       </span>
-                      <span className="min-w-0 truncate text-sm font-bold group-hover:text-primary">
-                        {e.title}
+                      <span className="mt-6 block text-6xl font-black tracking-tighter group-hover:text-primary md:text-7xl">
+                        {bigDate(e.start)}
                       </span>
-                      <span className="mono text-xs tracking-wide text-muted-foreground">
+                      <span className="mono mt-2 block text-[0.65rem] tracking-wide text-muted-foreground">
                         {formatEventDate(e)}
+                      </span>
+                      <span className="mt-5 block text-base font-bold leading-snug">{e.title}</span>
+                      {e.venue && (
+                        <span className="mt-2 block text-xs text-muted-foreground">{e.venue}</span>
+                      )}
+                      <span aria-hidden className="mt-auto block pt-6 text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                        →
                       </span>
                     </Link>
                   </li>
