@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useRef, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SectionHeader } from "@/components/site/SectionHeader";
@@ -53,6 +54,34 @@ const features = [
     body: "국내 입시 요강과 해외 유학 정보를 정리해, 무대를 향한 다음 걸음을 구체적으로 설계할 수 있게 돕습니다.",
   },
 ];
+
+// 마우스를 따라 3D로 기우는 카드 (모바일·터치에서는 자동으로 비활성)
+function TiltCard({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const onMove = (ev: React.MouseEvent) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (ev.clientX - r.left) / r.width - 0.5;
+    const py = (ev.clientY - r.top) / r.height - 0.5;
+    el.style.transform = `perspective(700px) rotateX(${(-py * 7).toFixed(2)}deg) rotateY(${(px * 9).toFixed(2)}deg)`;
+  };
+  const onLeave = () => {
+    if (ref.current) ref.current.style.transform = "";
+  };
+
+  return (
+    <div
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      className="h-full transition-transform duration-200 ease-out will-change-transform [transform-style:preserve-3d]"
+    >
+      {children}
+    </div>
+  );
+}
 
 // 시작까지 남은 일수 (오늘이면 0, 시작했으면 음수)
 function daysUntil(iso: string): number {
@@ -174,18 +203,21 @@ function Home() {
               {upcoming.map((e, i) => (
                 <Reveal key={e.id} delay={i * 80}>
                   <li className="h-full">
+                    <TiltCard>
                     <Link
                       to="/events"
-                      className="group flex h-full flex-col border border-border p-7 transition-all duration-200 hover:-translate-y-1 hover:border-primary md:p-8"
+                      className="group flex h-full flex-col border border-border bg-background p-7 transition-colors duration-200 hover:border-primary md:p-8 [transform-style:preserve-3d]"
                     >
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="sticker sticker-accent">{kindLabel[e.kind]}</span>
-                        <span className="sticker">{regionLabel[e.region]}</span>
+                        <span className="sticker">
+                          {e.region === "abroad" && e.country ? e.country : regionLabel[e.region]}
+                        </span>
                         {dday(e.start) && (
                           <span className="mono ml-auto text-xs font-bold text-primary">{dday(e.start)}</span>
                         )}
                       </span>
-                      <span className="mt-6 block text-6xl font-black tracking-tighter group-hover:text-primary md:text-7xl">
+                      <span className="mt-6 block text-6xl font-black tracking-tighter transition-transform duration-200 group-hover:text-primary group-hover:[transform:translateZ(34px)] md:text-7xl">
                         {bigDate(e.start)}
                       </span>
                       <span className="mono mt-2 block text-[0.65rem] tracking-wide text-muted-foreground">
@@ -199,6 +231,7 @@ function Home() {
                         →
                       </span>
                     </Link>
+                    </TiltCard>
                   </li>
                 </Reveal>
               ))}

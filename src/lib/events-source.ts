@@ -12,6 +12,7 @@ export type DanceEvent = {
   title: string;
   kind: EventKind;
   region: EventRegion;
+  country: string;
   start: string; // YYYY-MM-DD
   end: string | null;
   venue: string;
@@ -24,6 +25,7 @@ type EventRow = {
   title: string;
   kind: EventKind;
   region: EventRegion;
+  country: string;
   start_date: string;
   end_date: string | null;
   venue: string;
@@ -37,6 +39,7 @@ function rowToEvent(row: EventRow): DanceEvent {
     title: row.title,
     kind: row.kind,
     region: row.region,
+    country: row.country,
     start: row.start_date,
     end: row.end_date,
     venue: row.venue,
@@ -50,7 +53,7 @@ export async function fetchUpcomingEvents(): Promise<DanceEvent[]> {
   try {
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,kind,region,start_date,end_date,venue,description,link_url")
+      .select("id,title,kind,region,country,start_date,end_date,venue,description,link_url")
       .order("start_date", { ascending: true });
     if (error || !data) {
       if (error) console.error("[events] DB 조회 실패:", error.message);

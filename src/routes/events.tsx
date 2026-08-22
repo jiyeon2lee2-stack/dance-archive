@@ -153,7 +153,9 @@ function EventsPage() {
                         />
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="sticker sticker-accent">{kindLabel[e.kind]}</span>
-                          <span className="sticker">{regionLabel[e.region]}</span>
+                          <span className="sticker">
+                            {e.region === "abroad" && e.country ? e.country : regionLabel[e.region]}
+                          </span>
                           <DdayBadge start={e.start} />
                         </div>
                         <h3 className="type-h3 mt-4">{e.title}</h3>

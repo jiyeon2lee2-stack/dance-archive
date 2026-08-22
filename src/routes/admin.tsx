@@ -486,6 +486,7 @@ type EventAdminRow = {
   title: string;
   kind: "performance" | "workshop";
   region: "domestic" | "abroad";
+  country: string;
   start_date: string;
   end_date: string | null;
   venue: string;
@@ -493,10 +494,21 @@ type EventAdminRow = {
   link_url: string | null;
 };
 
+// 현대무용 주요 활동국 목록 (지도 기능에서 점 위치로 사용됩니다)
+const COUNTRIES = [
+  "한국", "일본", "중국", "대만", "싱가포르", "홍콩",
+  "미국", "캐나다", "브라질", "아르헨티나",
+  "영국", "프랑스", "독일", "네덜란드", "벨기에", "스위스", "오스트리아",
+  "스페인", "이탈리아", "포르투갈", "스웨덴", "덴마크", "노르웨이", "핀란드",
+  "체코", "폴란드", "헝가리", "그리스", "이스라엘", "튀르키예",
+  "호주", "뉴질랜드", "기타",
+];
+
 const emptyEvent = {
   title: "",
   kind: "performance" as "performance" | "workshop",
   region: "domestic" as "domestic" | "abroad",
+  country: "한국",
   start_date: "",
   end_date: "",
   venue: "",
@@ -514,7 +526,7 @@ function EventsAdmin() {
   const load = async () => {
     const { data, error } = await supabase
       .from("events")
-      .select("id,title,kind,region,start_date,end_date,venue,description,link_url")
+      .select("id,title,kind,region,country,start_date,end_date,venue,description,link_url")
       .order("start_date", { ascending: false });
     if (!error && data) setRows(data as EventAdminRow[]);
   };
@@ -536,6 +548,7 @@ function EventsAdmin() {
       title: r.title,
       kind: r.kind,
       region: r.region,
+      country: r.country || (r.region === "domestic" ? "한국" : "기타"),
       start_date: r.start_date,
       end_date: r.end_date ?? "",
       venue: r.venue,
@@ -561,6 +574,7 @@ function EventsAdmin() {
       title: form.title.trim(),
       kind: form.kind,
       region: form.region,
+      country: form.region === "domestic" ? "한국" : form.country,
       start_date: form.start_date,
       end_date: form.end_date || null,
       venue: form.venue.trim(),
@@ -648,11 +662,31 @@ function EventsAdmin() {
               </select>
             </Field>
             <Field label="지역">
-              <select className={inputCls} value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value as "domestic" | "abroad" })}>
+              <select
+                className={inputCls}
+                value={form.region}
+                onChange={(e) => {
+                  const region = e.target.value as "domestic" | "abroad";
+                  setForm({
+                    ...form,
+                    region,
+                    country: region === "domestic" ? "한국" : form.country === "한국" ? "기타" : form.country,
+                  });
+                }}
+              >
                 <option value="domestic">국내</option>
                 <option value="abroad">해외</option>
               </select>
             </Field>
+            {form.region === "abroad" && (
+              <Field label="나라" hint="지도 기능에서 이 나라 위치에 점이 표시됩니다.">
+                <select className={inputCls} value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })}>
+                  {COUNTRIES.filter((c) => c !== "한국").map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </Field>
+            )}
             <Field label="장소" hint="예: 예술의전당 CJ토월극장 / 런던 새들러스 웰스">
               <input className={inputCls} value={form.venue} onChange={(e) => setForm({ ...form, venue: e.target.value })} />
             </Field>
