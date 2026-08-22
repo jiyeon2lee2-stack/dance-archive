@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SectionHeader } from "@/components/site/SectionHeader";
@@ -8,20 +7,14 @@ import { WireGlobe } from "@/components/site/WireGlobe";
 import { Reveal } from "@/components/site/Reveal";
 import { type Work } from "@/lib/archive-data";
 import { fetchWorks } from "@/lib/works-source";
-import {
-  fetchUpcomingEvents,
-  formatEventDate,
-  kindLabel,
-  regionLabel,
-  type DanceEvent,
-} from "@/lib/events-source";
+import { fetchUpcomingEvents, type DanceEvent } from "@/lib/events-source";
 import { EventsWorldMap } from "@/components/site/EventsWorldMap";
 import heroImage from "@/assets/hero.jpg";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
     const [works, events] = await Promise.all([fetchWorks(), fetchUpcomingEvents()]);
-    return { featured: works.slice(0, 3), upcoming: events.slice(0, 3), allEvents: events };
+    return { featured: works.slice(0, 3), allEvents: events };
   },
   head: () => ({
     meta: [
@@ -56,59 +49,9 @@ const features = [
   },
 ];
 
-// 마우스를 따라 3D로 기우는 카드 (모바일·터치에서는 자동으로 비활성)
-function TiltCard({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const onMove = (ev: React.MouseEvent) => {
-    const el = ref.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const px = (ev.clientX - r.left) / r.width - 0.5;
-    const py = (ev.clientY - r.top) / r.height - 0.5;
-    el.style.transform = `perspective(700px) rotateX(${(-py * 7).toFixed(2)}deg) rotateY(${(px * 9).toFixed(2)}deg)`;
-  };
-  const onLeave = () => {
-    if (ref.current) ref.current.style.transform = "";
-  };
-
-  return (
-    <div
-      ref={ref}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      className="h-full transition-transform duration-200 ease-out will-change-transform [transform-style:preserve-3d]"
-    >
-      {children}
-    </div>
-  );
-}
-
-// 시작까지 남은 일수 (오늘이면 0, 시작했으면 음수)
-function daysUntil(iso: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((new Date(`${iso}T00:00:00`).getTime() - today.getTime()) / 86_400_000);
-}
-
-function dday(start: string): string | null {
-  const d = daysUntil(start);
-  if (d < 0) return "진행 중";
-  if (d === 0) return "오늘";
-  if (d <= 14) return `D-${d}`;
-  return null;
-}
-
-// "09.12" 형태의 큰 날짜 숫자
-function bigDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`);
-  return `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-}
-
 function Home() {
-  const { featured, upcoming, allEvents } = Route.useLoaderData() as {
+  const { featured, allEvents } = Route.useLoaderData() as {
     featured: Work[];
-    upcoming: DanceEvent[];
     allEvents: DanceEvent[];
   };
 
@@ -190,7 +133,7 @@ function Home() {
       </section>
 
       {/* 다가오는 일정 — 등록된 일정이 없으면 섹션 자체가 표시되지 않습니다 */}
-      {upcoming.length > 0 && (
+      {allEvents.length > 0 && (
         <section className="border-t border-border">
           <div className="mx-auto max-w-[1400px] px-6 py-16 md:px-10 md:py-20">
             <Reveal>
@@ -209,43 +152,6 @@ function Home() {
               <EventsWorldMap events={allEvents} />
             </Reveal>
 
-            <ul className="mt-12 grid gap-6 md:grid-cols-3">
-              {upcoming.map((e, i) => (
-                <Reveal key={e.id} delay={i * 80}>
-                  <li className="h-full">
-                    <TiltCard>
-                    <Link
-                      to="/events"
-                      className="group flex h-full flex-col border border-border bg-background p-7 transition-colors duration-200 hover:border-primary md:p-8 [transform-style:preserve-3d]"
-                    >
-                      <span className="flex flex-wrap items-center gap-2">
-                        <span className="sticker sticker-accent">{kindLabel[e.kind]}</span>
-                        <span className="sticker">
-                          {e.region === "abroad" && e.country ? e.country : regionLabel[e.region]}
-                        </span>
-                        {dday(e.start) && (
-                          <span className="mono ml-auto text-xs font-bold text-primary">{dday(e.start)}</span>
-                        )}
-                      </span>
-                      <span className="mt-6 block text-6xl font-black tracking-tighter transition-transform duration-200 group-hover:text-primary group-hover:[transform:translateZ(34px)] md:text-7xl">
-                        {bigDate(e.start)}
-                      </span>
-                      <span className="mono mt-2 block text-[0.65rem] tracking-wide text-muted-foreground">
-                        {formatEventDate(e)}
-                      </span>
-                      <span className="mt-5 block text-base font-bold leading-snug">{e.title}</span>
-                      {e.venue && (
-                        <span className="mt-2 block text-xs text-muted-foreground">{e.venue}</span>
-                      )}
-                      <span aria-hidden className="mt-auto block pt-6 text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                        →
-                      </span>
-                    </Link>
-                    </TiltCard>
-                  </li>
-                </Reveal>
-              ))}
-            </ul>
           </div>
         </section>
       )}
