@@ -32,6 +32,22 @@ export const Route = createFileRoute("/events")({
   component: EventsPage,
 });
 
+// 시작까지 남은 일수 (오늘 시작이면 0, 이미 시작했으면 음수)
+function daysUntil(iso: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(`${iso}T00:00:00`);
+  return Math.round((start.getTime() - today.getTime()) / 86_400_000);
+}
+
+function DdayBadge({ start }: { start: string }) {
+  const d = daysUntil(start);
+  if (d < 0) return <span className="mono text-xs font-bold text-primary">진행 중</span>;
+  if (d === 0) return <span className="mono text-xs font-bold text-primary">오늘</span>;
+  if (d <= 14) return <span className="mono text-xs font-bold text-primary">D-{d}</span>;
+  return null;
+}
+
 type KindFilter = "all" | EventKind;
 type RegionFilter = "all" | EventRegion;
 
@@ -115,46 +131,58 @@ function EventsPage() {
               : "선택한 조건에 맞는 일정이 없습니다."}
           </p>
         ) : (
-          grouped.map(([month, list]) => (
-            <section key={month} className="mt-14">
-              <Reveal>
-                <h2 className="type-caption text-[0.7rem] text-primary">{month}</h2>
-                <div className="rule mt-4" />
-              </Reveal>
-              <ul className="flex flex-col divide-y divide-border">
-                {list.map((e: DanceEvent) => (
-                  <Reveal key={e.id}>
-                    <li className="py-8">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="sticker sticker-accent">{kindLabel[e.kind]}</span>
-                        <span className="sticker">{regionLabel[e.region]}</span>
-                      </div>
-                      <h3 className="type-h3 mt-4">{e.title}</h3>
-                      <p className="mono mt-3 text-xs font-bold tracking-wide">{formatEventDate(e)}</p>
-                      {e.venue && (
-                        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <MapPin className="h-3.5 w-3.5 shrink-0" /> {e.venue}
-                        </p>
-                      )}
-                      {e.description && (
-                        <p className="type-body mt-4 text-sm leading-[1.9]">{e.description}</p>
-                      )}
-                      {e.link && (
-                        <a
-                          href={e.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-base btn-secondary mt-5 px-5 py-2 text-xs"
-                        >
-                          자세히 보기 <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      )}
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
-            </section>
-          ))
+          <div className="relative mt-16 ml-2 border-l border-foreground/25">
+            {grouped.map(([month, list]) => (
+              <section key={month} className="relative pb-4 pl-8 md:pl-12">
+                {/* 월 매듭 */}
+                <Reveal>
+                  <span
+                    aria-hidden
+                    className="absolute top-[9px] -left-px h-[2px] w-8 origin-left -rotate-12 bg-primary"
+                  />
+                  <h2 className="type-caption text-[0.72rem] text-primary">{month}</h2>
+                </Reveal>
+                <ul className="flex flex-col">
+                  {list.map((e: DanceEvent) => (
+                    <Reveal key={e.id}>
+                      <li className="relative pt-10 pb-4">
+                        {/* 일정 매듭 */}
+                        <span
+                          aria-hidden
+                          className="absolute top-[56px] -left-[33px] h-px w-5 origin-left -rotate-12 bg-foreground/45 md:-left-[49px]"
+                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="sticker sticker-accent">{kindLabel[e.kind]}</span>
+                          <span className="sticker">{regionLabel[e.region]}</span>
+                          <DdayBadge start={e.start} />
+                        </div>
+                        <h3 className="type-h3 mt-4">{e.title}</h3>
+                        <p className="mono mt-3 text-xs font-bold tracking-wide">{formatEventDate(e)}</p>
+                        {e.venue && (
+                          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" /> {e.venue}
+                          </p>
+                        )}
+                        {e.description && (
+                          <p className="type-body mt-4 text-sm leading-[1.9]">{e.description}</p>
+                        )}
+                        {e.link && (
+                          <a
+                            href={e.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn-base btn-secondary mt-5 px-5 py-2 text-xs"
+                          >
+                            자세히 보기 <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </li>
+                    </Reveal>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
         )}
 
         <p className="type-caption mt-20 text-[0.62rem] text-muted-foreground">
