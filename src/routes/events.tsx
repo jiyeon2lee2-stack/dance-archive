@@ -17,6 +17,11 @@ import {
 } from "@/lib/events-source";
 
 export const Route = createFileRoute("/events")({
+  // 주소에 ?country=프랑스 처럼 나라가 붙으면 그 나라 일정만 보여줍니다 (지구본 점 클릭용)
+  validateSearch: (search: Record<string, unknown>): { country?: string } =>
+    typeof search["country"] === "string" && search["country"].trim()
+      ? { country: search["country"].trim() }
+      : {},
   loader: async () => {
     const events = await fetchUpcomingEvents();
     return { events };
@@ -73,16 +78,20 @@ function FilterButton({
 
 function EventsPage() {
   const { events } = Route.useLoaderData();
+  const { country: countryParam } = Route.useSearch();
   const [kind, setKind] = useState<KindFilter>("all");
   const [region, setRegion] = useState<RegionFilter>("all");
+  // 지구본에서 넘어온 나라 필터 (지역 버튼을 누르면 해제됨)
+  const [country, setCountry] = useState<string | null>(countryParam ?? null);
 
   const filtered = useMemo(
     () =>
       events.filter(
         (e: DanceEvent) =>
-          (kind === "all" || e.kind === kind) && (region === "all" || e.region === region),
+          (kind === "all" || e.kind === kind) &&
+          (country ? e.country === country : region === "all" || e.region === region),
       ),
-    [events, kind, region],
+    [events, kind, region, country],
   );
 
   // 월별 묶음 (시작일 기준, 이미 날짜순 정렬됨)
@@ -118,9 +127,19 @@ function EventsPage() {
             <FilterButton active={kind === "workshop"} onClick={() => setKind("workshop")}>워크샵</FilterButton>
           </div>
           <div className="flex items-center gap-2">
-            <FilterButton active={region === "all"} onClick={() => setRegion("all")}>전 지역</FilterButton>
-            <FilterButton active={region === "domestic"} onClick={() => setRegion("domestic")}>국내</FilterButton>
-            <FilterButton active={region === "abroad"} onClick={() => setRegion("abroad")}>해외</FilterButton>
+            <FilterButton active={!country && region === "all"} onClick={() => { setCountry(null); setRegion("all"); }}>전 지역</FilterButton>
+            <FilterButton active={!country && region === "domestic"} onClick={() => { setCountry(null); setRegion("domestic"); }}>국내</FilterButton>
+            <FilterButton active={!country && region === "abroad"} onClick={() => { setCountry(null); setRegion("abroad"); }}>해외</FilterButton>
+            {country && (
+              <button
+                type="button"
+                onClick={() => setCountry(null)}
+                title="나라 필터 해제"
+                className="btn-base btn-primary px-4 py-2 text-xs"
+              >
+                {country} <span aria-hidden className="ml-1">✕</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -128,7 +147,9 @@ function EventsPage() {
           <p className="type-body mt-20 text-center text-sm text-muted-foreground">
             {events.length === 0
               ? "예정된 일정이 없습니다. 새 일정이 등록되면 이곳에 표시됩니다."
-              : "선택한 조건에 맞는 일정이 없습니다."}
+              : country
+                ? `${country}에 예정된 일정이 없습니다.`
+                : "선택한 조건에 맞는 일정이 없습니다."}
           </p>
         ) : (
           <div className="relative mt-16 ml-2 border-l border-foreground/25">

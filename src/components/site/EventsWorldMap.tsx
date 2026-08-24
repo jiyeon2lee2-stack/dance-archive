@@ -104,9 +104,9 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
 
   const center: [number, number] = [-rotation[0], -rotation[1]];
 
-  const goEvents = () => {
+  const goEvents = (country: string) => {
     if (wasDragged()) return; // 끌기였다면 이동하지 않음
-    void navigate({ to: "/events" });
+    void navigate({ to: "/events", search: { country } });
   };
 
   return (
@@ -177,14 +177,14 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
                 key={country}
                 role="link"
                 tabIndex={0}
-                aria-label={`${country} 일정 ${list.length}개 — 일정 페이지로 이동`}
+                aria-label={`${country} 일정 ${list.length}개 — ${country} 일정 보기`}
                 className="cursor-pointer outline-none"
-                onClick={goEvents}
+                onClick={() => goEvents(country)}
                 onKeyDown={(ev) => {
-                  if (ev.key === "Enter" || ev.key === " ") goEvents();
+                  if (ev.key === "Enter" || ev.key === " ") goEvents(country);
                 }}
               >
-                <title>{`${country} · 일정 ${list.length}개 → 일정 페이지`}</title>
+                <title>{`${country} · 일정 ${list.length}개 → ${country} 일정 보기`}</title>
                 <circle cx={x} cy={y} r="6" className="map-pulse" fill="var(--santorini)" />
                 <circle cx={x} cy={y} r="15" fill="transparent" />
                 <circle cx={x} cy={y} r="6.5" fill="var(--santorini)" stroke="var(--background)" strokeWidth="1.5" />
@@ -200,7 +200,7 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
       </div>
 
       <p className="type-caption mt-4 text-center text-[0.62rem] text-muted-foreground">
-        지구본을 돌려보세요 · 파란 점을 누르면 일정 페이지로 이동합니다
+        지구본을 돌려보세요 · 파란 점을 누르면 그 나라의 일정으로 이동합니다
       </p>
     </div>
   );
