@@ -115,33 +115,46 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
           onPointerCancel={endDrag}
         >
           <defs>
-            {/* 구면 음영: 왼쪽 위 하이라이트 + 가장자리 어둡게 → 입체감 */}
-            <radialGradient id="globe-shade" cx="0.36" cy="0.3" r="0.9">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.22" />
-              <stop offset="55%" stopColor="#ffffff" stopOpacity="0" />
-              <stop offset="100%" stopColor="#000000" stopOpacity="0.28" />
+            {/* 가장자리로 갈수록 은은히 푸르게 → 선만으로 구의 볼륨을 암시 */}
+            <radialGradient id="globe-depth" cx="0.5" cy="0.5" r="0.5">
+              <stop offset="0%" stopColor="var(--santorini)" stopOpacity="0" />
+              <stop offset="78%" stopColor="var(--santorini)" stopOpacity="0.03" />
+              <stop offset="100%" stopColor="var(--santorini)" stopOpacity="0.12" />
             </radialGradient>
           </defs>
 
-          {/* 바다 (산토리니 블루 구체) */}
-          <circle cx={C} cy={C} r={R} style={{ fill: "var(--santorini)" }} />
+          {/* 드래그 잡을 수 있는 투명 구면 + 깊이감 */}
+          <circle cx={C} cy={C} r={R} fill="url(#globe-depth)" />
 
-          {/* 위·경도 그물선 */}
-          <path d={path(GRATICULE) ?? ""} fill="none" stroke="#ffffff" strokeOpacity="0.14" strokeWidth="0.7" />
-
-          {/* 대륙 */}
+          {/* 위·경도 그물선 (가는 가닥) */}
           <path
-            d={path(LAND as Parameters<typeof path>[0]) ?? ""}
-            className="fill-background"
-            fillOpacity="0.92"
-            stroke="#ffffff"
-            strokeOpacity="0.35"
-            strokeWidth="0.5"
+            d={path(GRATICULE) ?? ""}
+            fill="none"
+            stroke="var(--santorini)"
+            strokeOpacity="0.22"
+            strokeWidth="0.55"
           />
 
-          {/* 구면 음영 + 윤곽 */}
-          <circle cx={C} cy={C} r={R} fill="url(#globe-shade)" pointerEvents="none" />
-          <circle cx={C} cy={C} r={R} fill="none" className="stroke-foreground/30" strokeWidth="1" />
+          {/* 대륙 윤곽선 (조금 진한 가닥) */}
+          <path
+            d={path(LAND as Parameters<typeof path>[0]) ?? ""}
+            fill="var(--santorini)"
+            fillOpacity="0.045"
+            stroke="var(--santorini)"
+            strokeOpacity="0.75"
+            strokeWidth="0.9"
+          />
+
+          {/* 바깥 윤곽 */}
+          <circle
+            cx={C}
+            cy={C}
+            r={R}
+            fill="none"
+            stroke="var(--santorini)"
+            strokeOpacity="0.5"
+            strokeWidth="1.1"
+          />
 
           {/* 일정 점 (뒷면은 자동 숨김) */}
           {Array.from(byCountry.entries()).map(([country, list]) => {
@@ -162,11 +175,11 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
                 }}
               >
                 <title>{`${country} · 일정 ${list.length}개`}</title>
-                <circle cx={x} cy={y} r="6" className="map-pulse fill-foreground" />
+                <circle cx={x} cy={y} r="6" className="map-pulse" fill="var(--santorini)" />
                 <circle cx={x} cy={y} r="15" fill="transparent" />
-                <circle cx={x} cy={y} r={active ? 8.5 : 6.5} className="fill-foreground" stroke="#ffffff" strokeOpacity="0.85" strokeWidth="1.5" />
+                <circle cx={x} cy={y} r={active ? 8.5 : 6.5} fill="var(--santorini)" stroke="var(--background)" strokeWidth="1.5" />
                 {list.length > 1 && (
-                  <text x={x} y={y + 3.4} textAnchor="middle" className="pointer-events-none fill-background text-[9.5px] font-bold">
+                  <text x={x} y={y + 3.4} textAnchor="middle" className="pointer-events-none fill-white text-[9.5px] font-bold">
                     {list.length}
                   </text>
                 )}
@@ -175,7 +188,8 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
                     x={x}
                     y={y - 16}
                     textAnchor="middle"
-                    className="pointer-events-none fill-foreground text-[15px] font-bold"
+                    className="pointer-events-none text-[15px] font-bold"
+                    fill="var(--santorini)"
                     stroke="var(--background)"
                     strokeWidth="4"
                     paintOrder="stroke"
