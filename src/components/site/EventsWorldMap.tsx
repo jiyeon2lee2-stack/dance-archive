@@ -1,14 +1,14 @@
 // 다가오는 일정 지구본
 // - 산토리니 블루 구체 위에 대륙이 그려지고, 일정이 있는 나라에 점이 맥박칩니다.
 // - 마우스 드래그(모바일: 좌우로 쓸기)로 회전하고, 손대기 전에는 천천히 자전합니다.
-// - 점을 클릭(탭)하면 아래에 그 나라의 일정 목록이 펼쳐집니다.
+// - 점을 클릭(탭)하면 공연·워크샵 일정 페이지로 이동합니다.
 // 지형 데이터는 Natural Earth(퍼블릭 도메인)에서 생성했습니다.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { geoOrthographic, geoPath, geoGraticule10, geoDistance } from "d3-geo";
 import { LAND } from "./globe-land";
-import { formatEventDate, kindLabel, type DanceEvent } from "@/lib/events-source";
+import { type DanceEvent } from "@/lib/events-source";
 
 // 나라별 대표 좌표 (경도, 위도)
 const COUNTRY_LL: Record<string, [number, number]> = {
@@ -33,7 +33,7 @@ const GRATICULE = geoGraticule10();
 export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
   // 회전 상태: [경도 회전, 위도 기울기]. 시작은 한국이 정면
   const [rotation, setRotation] = useState<[number, number]>([-127, -18]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const interactedRef = useRef(false);
   const dragRef = useRef<{ x: number; y: number; rot: [number, number]; moved: boolean } | null>(null);
@@ -76,14 +76,18 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
   const onPointerDown = (ev: React.PointerEvent<SVGSVGElement>) => {
     interactedRef.current = true;
     dragRef.current = { x: ev.clientX, y: ev.clientY, rot: [...rotation] as [number, number], moved: false };
-    ev.currentTarget.setPointerCapture(ev.pointerId);
+    // 주의: 여기서 마우스를 붙잡으면(setPointerCapture) 점 클릭까지 가로채므로,
+    // 실제로 끌기 시작한 뒤(onPointerMove)에만 붙잡습니다.
   };
   const onPointerMove = (ev: React.PointerEvent<SVGSVGElement>) => {
     const d = dragRef.current;
     if (!d) return;
     const dx = ev.clientX - d.x;
     const dy = ev.clientY - d.y;
-    if (Math.abs(dx) + Math.abs(dy) > 4) d.moved = true;
+    if (!d.moved && Math.abs(dx) + Math.abs(dy) > 4) {
+      d.moved = true;
+      ev.currentTarget.setPointerCapture(ev.pointerId);
+    }
     const k = 0.32;
     const lambda = d.rot[0] + dx * k;
     const phi = Math.max(-62, Math.min(62, d.rot[1] - dy * k));
@@ -99,7 +103,11 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
   const wasDragged = () => Boolean(dragRef.current?.moved);
 
   const center: [number, number] = [-rotation[0], -rotation[1]];
-  const sel = selected ? (byCountry.get(selected) ?? []) : null;
+
+  const goEvents = () => {
+    if (wasDragged()) return; // 끌기였다면 이동하지 않음
+    void navigate({ to: "/events" });
+  };
 
   return (
     <div>
@@ -164,37 +172,25 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
             const p = projection(ll);
             if (!p) return null;
             const [x, y] = p;
-            const active = selected === country;
             return (
               <g
                 key={country}
-                className="cursor-pointer"
-                onClick={() => {
-                  if (wasDragged()) return;
-                  setSelected(active ? null : country);
+                role="link"
+                tabIndex={0}
+                aria-label={`${country} 일정 ${list.length}개 — 일정 페이지로 이동`}
+                className="cursor-pointer outline-none"
+                onClick={goEvents}
+                onKeyDown={(ev) => {
+                  if (ev.key === "Enter" || ev.key === " ") goEvents();
                 }}
               >
-                <title>{`${country} · 일정 ${list.length}개`}</title>
+                <title>{`${country} · 일정 ${list.length}개 → 일정 페이지`}</title>
                 <circle cx={x} cy={y} r="6" className="map-pulse" fill="var(--santorini)" />
                 <circle cx={x} cy={y} r="15" fill="transparent" />
-                <circle cx={x} cy={y} r={active ? 8.5 : 6.5} fill="var(--santorini)" stroke="var(--background)" strokeWidth="1.5" />
+                <circle cx={x} cy={y} r="6.5" fill="var(--santorini)" stroke="var(--background)" strokeWidth="1.5" />
                 {list.length > 1 && (
                   <text x={x} y={y + 3.4} textAnchor="middle" className="pointer-events-none fill-white text-[9.5px] font-bold">
                     {list.length}
-                  </text>
-                )}
-                {active && (
-                  <text
-                    x={x}
-                    y={y - 16}
-                    textAnchor="middle"
-                    className="pointer-events-none text-[15px] font-bold"
-                    fill="var(--santorini)"
-                    stroke="var(--background)"
-                    strokeWidth="4"
-                    paintOrder="stroke"
-                  >
-                    {country}
                   </text>
                 )}
               </g>
@@ -203,35 +199,9 @@ export function EventsWorldMap({ events }: { events: DanceEvent[] }) {
         </svg>
       </div>
 
-      {sel && selected ? (
-        <div className="mx-auto mt-4 max-w-[720px] border border-border p-6 md:p-7">
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="type-h3">{selected}</h3>
-            <span className="sticker sticker-accent">{sel.length}개 일정</span>
-          </div>
-          <ul className="mt-4 flex flex-col divide-y divide-border">
-            {sel.map((e) => (
-              <li key={e.id} className="py-3.5">
-                <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                  <span className="min-w-0 text-sm font-bold">
-                    <span className="sticker mr-2 align-middle">{kindLabel[e.kind]}</span>
-                    {e.title}
-                  </span>
-                  <span className="mono text-xs text-muted-foreground">{formatEventDate(e)}</span>
-                </div>
-                {e.venue && <p className="mt-1 text-xs text-muted-foreground">{e.venue}</p>}
-              </li>
-            ))}
-          </ul>
-          <Link to="/events" className="link-marker mt-5 inline-block text-sm">
-            전체 일정 보기 <span aria-hidden>→</span>
-          </Link>
-        </div>
-      ) : (
-        <p className="type-caption mt-4 text-center text-[0.62rem] text-muted-foreground">
-          지구본을 돌려보세요 · 점을 누르면 나라별 일정이 표시됩니다
-        </p>
-      )}
+      <p className="type-caption mt-4 text-center text-[0.62rem] text-muted-foreground">
+        지구본을 돌려보세요 · 파란 점을 누르면 일정 페이지로 이동합니다
+      </p>
     </div>
   );
 }
