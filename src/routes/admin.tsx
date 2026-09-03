@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, X, ShieldAlert } from "lucide-react";
+import { Plus, Pencil, Trash2, X, ShieldAlert, Upload } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/use-auth";
 import { useIsAdmin } from "@/lib/use-admin";
+import { uploadWorkImage } from "@/lib/upload-image";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -40,6 +41,78 @@ function Field({
 
 const inputCls =
   "w-full border border-border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary";
+
+/** 사진을 직접 올리거나 주소를 붙여넣을 수 있는 이미지 입력 칸. */
+function ImageField({
+  label,
+  hint,
+  value,
+  onChange,
+  slugHint,
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+  onChange: (url: string) => void;
+  slugHint?: string;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handlePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 같은 파일을 다시 골라도 동작하도록 비워둡니다
+    if (!file) return;
+    setBusy(true);
+    setError(null);
+    try {
+      onChange(await uploadWorkImage(file, slugHint));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "업로드에 실패했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <span className="type-caption block text-[0.7rem]">{label}</span>
+      {hint && <span className="block text-[0.68rem] text-muted-foreground">{hint}</span>}
+      <div className="mt-1.5 grid gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="btn-base btn-secondary cursor-pointer px-4 py-2 text-xs">
+            <Upload className="h-4 w-4" />
+            {busy ? "올리는 중..." : "내 컴퓨터에서 사진 선택"}
+            <input type="file" accept="image/*" className="hidden" disabled={busy} onChange={handlePick} />
+          </label>
+          {value && (
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="type-caption text-[0.7rem] text-muted-foreground underline"
+            >
+              이미지 지우기
+            </button>
+          )}
+        </div>
+        <input
+          className={inputCls}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://... (주소를 직접 붙여넣어도 됩니다)"
+        />
+        {error && <p className="text-[0.7rem] text-destructive">{error}</p>}
+        {value && (
+          <img
+            src={value}
+            alt="선택한 이미지 미리보기"
+            className="h-28 w-auto border border-border object-cover"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
 /* ---------- 작품 관리 ---------- */
 
@@ -228,9 +301,13 @@ function WorksAdmin() {
             </Field>
           </div>
           <div className="mt-4 grid gap-4">
-            <Field label="이미지 URL" hint="비워두면 기본 이미지 사용. 외부 이미지 주소(https://...)를 붙여넣으세요.">
-              <input className={inputCls} value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
-            </Field>
+            <ImageField
+              label="이미지"
+              hint="내 컴퓨터의 사진을 올리거나 주소를 붙여넣으세요. 비워두면 기본 이미지가 표시됩니다. 저작권이 확인된 사진만 사용하세요."
+              value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              slugHint={form.slug}
+            />
             <Field label="유튜브 영상 주소" hint="공식 채널 영상만 사용하세요. 주소를 그대로 붙여넣으면 상세 페이지에 영상이 표시됩니다. 비워두면 영상 없이 표시됩니다.">
               <input className={inputCls} value={form.youtube_url} onChange={(e) => setForm({ ...form, youtube_url: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
             </Field>
@@ -446,9 +523,13 @@ function CompaniesAdmin() {
             </Field>
           </div>
           <div className="mt-4 grid gap-4">
-            <Field label="이미지 URL" hint="비워두면 이미지 없이 표시됩니다. 저작권 확인된 이미지만 사용하세요.">
-              <input className={inputCls} value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
-            </Field>
+            <ImageField
+              label="이미지"
+              hint="내 컴퓨터의 사진을 올리거나 주소를 붙여넣으세요. 비워두면 이미지 없이 표시됩니다. 저작권이 확인된 사진만 사용하세요."
+              value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              slugHint={form.slug}
+            />
             <Field label="공식 웹사이트 주소" hint="상세 페이지에 '공식 웹사이트' 버튼으로 표시됩니다.">
               <input className={inputCls} value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="https://..." />
             </Field>
